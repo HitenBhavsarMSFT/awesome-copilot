@@ -3,7 +3,7 @@ title: 'Copilot Configuration Basics'
 description: 'Learn how to configure GitHub Copilot at user, workspace, and repository levels to optimize your AI-assisted development experience.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-07-28
+lastUpdated: 2026-07-31
 estimatedReadingTime: '10 minutes'
 tags:
   - configuration
@@ -447,7 +447,7 @@ The model picker opens in a **full-screen view** with inline reasoning effort ad
 
 **Auto mode and server-side model routing** (v1.0.43+): When you select **Auto** as your model, the CLI uses server-side model routing for real-time model selection. Instead of locking in a single model at session start, Auto mode evaluates each request and routes it to the most appropriate model dynamically. This means straightforward questions can be handled by a faster model while complex reasoning tasks are automatically escalated — without you needing to switch models manually.
 
-**Model family aliases** (v1.0.64+): Instead of typing a full model name, you can use short family aliases in the model setting: `opus`, `sonnet`, `haiku` (Anthropic), and `gpt`, `gemini` (Google/OpenAI). The CLI resolves the alias to the latest available model in that family. This is especially useful in scripts or configuration files where you want to track the best model in a family without hardcoding a version string. Recent models available include **Claude Opus 5** (v1.0.75+), the latest in Anthropic's Opus family for the most demanding tasks.
+**Model family aliases** (v1.0.64+): Instead of typing a full model name, you can use short family aliases in the model setting: `opus`, `sonnet`, `haiku` (Anthropic), and `gpt`, `gemini` (Google/OpenAI). The CLI resolves the alias to the latest available model in that family. This is especially useful in scripts or configuration files where you want to track the best model in a family without hardcoding a version string. Recent models available include **Claude Opus 5** (v1.0.75+), the latest in Anthropic's Opus family for the most demanding tasks, and **grok-4.5** (v1.0.76+) from xAI.
 
 **Plan mode model** *(v1.0.74+)*: When using plan mode (which blocks file mutations and keeps changes in a planning phase), you can assign a *separate* model specifically for planning — different from your regular session model. This lets you use a fast, cost-effective model for plan drafting while keeping a more capable model on standby for the implementation phase:
 
@@ -543,6 +543,8 @@ The `/fork` command (v1.0.45+) copies the current session into a **new independe
 
 After forking, the new session is immediately active. Both sessions share the same history up to the fork point but accumulate changes independently from that moment forward. Use `/fork` to experiment with a risky refactor without abandoning your current working session. Since v1.0.47, forked sessions display their **origin session** name in the sessions dialog, making it easy to trace which session a fork came from.
 
+**Sessions sidebar** *(v1.0.76+, experimental)*: Enable with `/experimental on` to get a split-pane sidebar that lists all your active and backgrounded sessions at a glance. From the sidebar you can switch sessions, spawn new ones, and see each session's current status without leaving the terminal. Navigate it with arrow keys, spawn a new session with **n**, and close a session with **x x**. Customize appearance with `sidebar.hoverFocus` (hover-to-focus, off by default) and `sidebar.accentActiveSession` (highlight the active session, on by default).
+
 The `/cd` command changes the working directory for the current session. Since v1.0.65, the working directory **persists when you resume a session** — if you restart the CLI and resume, you return to the same directory automatically. Changing directory also triggers discovery of custom agents in the new location, so switching to a different project loads its agents without a restart:
 
 ```
@@ -637,6 +639,8 @@ Use `/diagnose` when a session is behaving unexpectedly — it inspects session 
 
 **Keyboard shortcuts for queuing messages**: Use **Ctrl+Q** or **Ctrl+Enter** to queue a message (send it while the agent is still working). **Ctrl+D** no longer queues messages — it now has its default terminal behavior. If you have muscle memory for Ctrl+D queuing, switch to Ctrl+Q.
 
+**Directable queue manager** *(v1.0.76+)*: Press the queue indicator in the footer (or use `/queue`) to open the interactive queue manager, which lets you **reorder**, **edit**, **remove**, **repeat**, and **immediately send** queued messages before the agent processes them. This gives you fine-grained control over the backlog of pending prompts during long agentic runs.
+
 **Background running tasks**: Press **Ctrl+X → B** to move the current running task or shell command to the background. The task continues executing while you can type a new message or review earlier output. This is useful for long-running commands where you want to interact with the agent while waiting for the result.
 
 **Shell command history in normal mode** (v1.0.65+): The **↑/↓** arrow keys and **Ctrl+R** reverse search now include past shell commands (commands run with `!`) while you are in normal (non-shell) input mode. Previously you had to type `!` to enter shell mode before history worked. Now you can recall and re-run a shell command without switching modes first — useful for quickly repeating a build, test, or diagnostic command from earlier in the session.
@@ -674,6 +678,14 @@ The `/usage` command displays session metrics such as the number of tokens consu
 ```
 /usage
 ```
+
+**`/limits predict`** *(v1.0.76+)* extends session limit management by suggesting an AI-credit limit tailored to the current session based on patterns from similar past sessions:
+
+```
+/limits predict     # suggest a credit limit based on similar sessions
+```
+
+This is helpful for long-running autopilot tasks where you want to cap spend without guessing — Copilot analyzes historical session costs and recommends a sensible limit you can confirm or adjust.
 
 The `/compact` command summarizes the conversation history to free up context window space while preserving the thread of the conversation. Use it when your context is getting full but you do not want to start a fresh session:
 
@@ -727,6 +739,14 @@ Use `/autopilot` when you want to flip between supervised and unsupervised opera
 
 > **Read-only `gh` CLI commands (v1.0.46+)**: Read-only `gh` commands — such as `gh issue list`, `gh pr view`, `gh run status`, and other commands that don't write to GitHub — are **automatically approved** without a permission prompt. Only commands that write to GitHub (like creating issues, merging PRs) still require explicit approval. This reduces friction during exploratory sessions where you frequently check issue or PR status.
 
+The `/permissions` command *(v1.0.78+)* lets you switch between tool-approval modes directly in a session without typing the full `/allow-all` subcommands. It opens an interactive picker to cycle through **interactive** (prompt for every tool), **auto** (LLM-judged approval), and **allow-all** (approve everything) modes:
+
+```
+/permissions        # open the approval-mode picker
+```
+
+Use `/permissions` as a quick shortcut when you want to change how assertively Copilot operates mid-session.
+
 The `--effort` flag (shorthand for `--reasoning-effort`) controls how much computational reasoning the model applies to a request:
 
 ```bash
@@ -771,6 +791,16 @@ copilot --no-sandbox -p "Set up development environment with system tools"
 
 These flags apply only to the current invocation — your persisted sandbox preference remains unchanged.
 
+**`allowDevToolCaches` sandbox setting** *(v1.0.78+)*: When the OS-level sandbox is enabled, the `allowDevToolCaches` setting (on by default) grants sandboxed builds access to toolchain caches, package registries, and language runtime installs. This means common build tools such as npm, pip, cargo, and maven work inside the sandbox without any extra configuration. Set it to `false` in your sandbox settings to opt out for stricter isolation:
+
+```json
+{
+  "sandbox": {
+    "allowDevToolCaches": false
+  }
+}
+```
+
 The `--attachment` flag (available in prompt mode, `-p`) lets you attach files — images or native documents — to the initial prompt in non-interactive mode:
 
 ```bash
@@ -793,6 +823,22 @@ copilot --config-dir ~/.my-copilot-config
 ```
 
 Set `COPILOT_HOME` in your shell profile to use a custom config directory across all sessions. This is especially useful when running multiple Copilot configurations for different projects or teams.
+
+### Authentication and Login
+
+The `copilot login` command authenticates your CLI session with GitHub. Starting in v1.0.77, the default login flow depends on your terminal context:
+
+- **Local interactive terminals** (e.g., your laptop's terminal): opens a **browser-based (web) OAuth flow** — your browser launches automatically to complete sign-in.
+- **Remote or headless terminals** (e.g., SSH sessions, CI): uses the **device code flow** — you are shown a code to enter at `github.com/login/device`.
+
+You can override the default with explicit flags:
+
+```bash
+copilot login --web-flow     # force browser-based OAuth (local terminals)
+copilot login --device-code  # force device code flow (headless environments)
+```
+
+The interactive `/login` command inside a session lets you pick the flow interactively, and also supports switching GitHub accounts mid-session.
 
 ### Shell Completion
 
