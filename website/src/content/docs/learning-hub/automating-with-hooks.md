@@ -3,7 +3,7 @@ title: 'Automating with Hooks'
 description: 'Learn how to use hooks to automate lifecycle events like formatting, linting, and governance checks during Copilot agent sessions.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-07-13
+lastUpdated: 2026-08-01
 estimatedReadingTime: '8 minutes'
 tags:
   - hooks
@@ -296,6 +296,22 @@ exit 1     # deny (let the user decide interactively)
 ```
 
 > **Security note**: Use `PermissionRequest` hooks carefully. Blanket auto-approval in non-CI environments removes an important safety check. Scope the auto-approval logic precisely (e.g., only in CI, only for specific tools).
+
+### Switching Approval Modes with /permissions
+
+*(v1.0.78+)* For interactive sessions, you can switch the entire approval mode on the fly with the `/permissions` command instead of (or in addition to) configuring hooks:
+
+```
+/permissions
+```
+
+This opens a dialog to switch between:
+
+- **Interactive** — the default; Copilot asks for approval on each sensitive action
+- **Autopilot** — Copilot proceeds without prompting, applying its built-in safety judgment
+- **Allow all** — all actions are permitted without prompts (use carefully)
+
+The `/permissions` command is a quick way to temporarily raise or lower the approval threshold for a session without writing hook configuration. For persistent or automated policy enforcement, `PermissionRequest` hooks remain the right tool — they provide deterministic, scriptable control over exactly which actions are approved and why.
 
 > **Prompt mode security (v1.0.40+)**: When running the CLI in **prompt mode** (`copilot -p "..."`) — the non-interactive mode commonly used in CI pipelines — repo hooks are **disabled by default** for security. To opt in to repo hooks in prompt mode, set the environment variable `GITHUB_COPILOT_PROMPT_MODE_REPO_HOOKS=true` before running the command:
 > ```bash
