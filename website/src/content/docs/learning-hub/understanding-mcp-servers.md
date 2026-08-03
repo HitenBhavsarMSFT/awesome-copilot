@@ -3,7 +3,7 @@ title: 'Understanding MCP Servers'
 description: 'Learn how Model Context Protocol servers extend GitHub Copilot with access to external tools, databases, and APIs.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-07-13
+lastUpdated: 2026-08-03
 estimatedReadingTime: '8 minutes'
 tags:
   - mcp
@@ -69,6 +69,8 @@ MCP servers are configured per-workspace. GitHub Copilot CLI discovers server de
 | `.github/mcp.json` | Repository `.github/` folder | Auto-loaded workspace config (v1.0.61+) |
 | `.vscode/mcp.json` | VS Code workspace | VS Code–compatible workspace config |
 | `devcontainer.json` | Dev container | Available when running inside a container |
+
+> **Open Plugin Spec v1 (v1.0.74+)**: GitHub Copilot CLI now supports **Open Plugin Spec v1** plugin manifests as well as `mcp.json` configuration files. If a plugin ships an Open Plugin Spec–compliant manifest, the CLI can load its MCP server definitions automatically without manual JSON editing. This is especially relevant for third-party plugins that bundle their own MCP servers — installing the plugin automatically makes its tools available.
 
 > **Security**: Workspace MCP servers are loaded **only after folder trust is confirmed**. If you haven't explicitly trusted a folder, servers defined in its config files won't start — protecting you from malicious MCP server configurations in untrusted repositories.
 

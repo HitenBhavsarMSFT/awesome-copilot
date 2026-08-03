@@ -3,7 +3,7 @@ title: 'Copilot Configuration Basics'
 description: 'Learn how to configure GitHub Copilot at user, workspace, and repository levels to optimize your AI-assisted development experience.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-07-28
+lastUpdated: 2026-08-03
 estimatedReadingTime: '10 minutes'
 tags:
   - configuration
@@ -429,6 +429,8 @@ CLI settings use **camelCase** naming. Key settings added in recent releases:
 | `proxy` | HTTP(S) proxy URL for all outbound CLI requests (e.g., `http://proxy.example.com:8080`) (v1.0.64+) |
 | `sessionLimits` | Restrict credit or turn usage for a session; limits apply across the current conversation and reset on `/clear` (v1.0.66+) |
 | `stayInAutopilot` | Keep the CLI in autopilot mode after an autopilot task completes, instead of returning to interactive mode (v1.0.69+) |
+| `sidebar.hoverFocus` | Enable hover-to-focus in the Sessions sidebar (off by default, v1.0.76+) |
+| `sidebar.accentActiveSession` | Accent the active session card in the sidebar (on by default, v1.0.76+) |
 
 > **Note**: Older snake_case names (e.g., `include_gitignored`, `auto_updates_channel`) are still accepted for backward compatibility, but camelCase is now the preferred format.
 
@@ -488,6 +490,8 @@ GitHub Copilot CLI has two commands for managing session state, with distinct be
 | `/clear [prompt]` | Abandons the current session entirely and starts a new one. Backgrounded sessions are not affected. MCP servers configured in your project are preserved in the new session. |
 
 Both commands accept an optional prompt argument to seed the new session with an opening message, for example `/new Add error handling to the login flow`.
+
+> **Sessions sidebar (v1.0.76+, experimental)**: The Sessions sidebar provides a visual panel for managing multiple concurrent sessions. Enable it with `/experimental on`, then use it to switch between backgrounded sessions, spawn new ones, and see session status at a glance. Navigate with arrow keys, press **n** to create a session, and press **x** twice to close one. The sidebar remembers your sessions across CLI restarts and restores them on startup. You can disable this behavior or the sidebar entirely in `/settings`.
 
 The `/session rename` command renames the current session. When called **without a name argument**, it automatically generates a session name based on the conversation history:
 
@@ -566,6 +570,14 @@ In v1.0.66+, you can pass a task description to `/worktree` to name the branch f
 This creates a branch named from your task description and begins working on it immediately, making it easy to spin up parallel work without stopping to think of a branch name.
 
 After the command runs, the session is inside the new worktree. Use this when you want to work on a second task in parallel without stashing changes or opening a new terminal. In v1.0.64+ you can also use the experimental `--worktree` flag at startup (`copilot -w [name]`) to create or reuse a worktree under `<repo>.worktrees/` before the session begins.
+
+> **`/new-worktree` command (v1.0.78+)**: The `/new-worktree` command is a companion to `/worktree` that creates a new worktree and **starts a fresh conversation** in it, leaving your current session and its uncommitted changes behind. Use it when you want to spin off an entirely separate agent session for a parallel task rather than switching your current session:
+>
+> ```
+> /new-worktree add authentication support
+> ```
+>
+> This creates a new worktree on a branch derived from your task description and opens a new conversation seeded with that prompt. Your original session continues unaffected in the background.
 
 The `/every` command (also available as `/loop` since v1.0.64) schedules a recurring prompt to run automatically at a specified interval. The companion `/after` command runs a prompt once after a specified delay. Both are useful for self-paced automation — polling for results, periodically summarizing progress, or triggering other slash commands on a timer:
 
@@ -724,6 +736,15 @@ Use `/autopilot` when you want to flip between supervised and unsupervised opera
 > **Enhanced autopilot (v1.0.64+)**: When autopilot mode is active — including when launched with `--autopilot` at startup or during automatic continuation turns — the agent automatically handles elicitation dialogs, `ask_user` prompts, sampling requests, and permission prompts without surfacing them as interactive dialogs. This means long-running automated sessions can proceed end-to-end without manual confirmation steps.
 
 > **Auto allow-all mode (v1.0.69+)**: In addition to the standard allow-all mode (which approves everything), the CLI now supports an **auto allow-all** mode that uses an LLM judge to evaluate each tool request. When enabled, the judge automatically approves requests it evaluates as acceptable, and asks you for manual confirmation only for requests it considers risky. This gives you a middle ground between full autopilot and fully supervised operation — most routine actions proceed automatically while unusual or potentially dangerous actions still surface for your review. As of v1.0.69-3, this mode requires experimental features to be enabled — use `/experimental on` or start the CLI with `--experimental` — then activate it with `/allow-all auto`. The previous `AUTO_APPROVAL` environment variable approach has been removed in favour of experimental mode.
+
+> **`/permissions` command (v1.0.78+)**: The `/permissions` command provides a unified way to switch between all approval modes — interactive, autopilot, and auto — from a single command without needing to remember the specific `/allow-all` or `/autopilot` syntax. Use `/permissions` with no arguments to open the picker, or pass a mode directly:
+>
+> ```
+> /permissions            # open the approval mode picker
+> /permissions autopilot  # switch to autopilot (no confirmations)
+> /permissions auto       # switch to auto (LLM-judged approvals)
+> /permissions interactive # return to fully supervised mode
+> ```
 
 > **Read-only `gh` CLI commands (v1.0.46+)**: Read-only `gh` commands — such as `gh issue list`, `gh pr view`, `gh run status`, and other commands that don't write to GitHub — are **automatically approved** without a permission prompt. Only commands that write to GitHub (like creating issues, merging PRs) still require explicit approval. This reduces friction during exploratory sessions where you frequently check issue or PR status.
 
