@@ -3,7 +3,7 @@ title: 'Installing and Using Plugins'
 description: 'Learn how to find, install, and manage plugins that extend GitHub Copilot CLI with reusable agents, skills, hooks, and integrations.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-07-28
+lastUpdated: 2026-08-05
 estimatedReadingTime: '8 minutes'
 tags:
   - plugins
@@ -221,6 +221,10 @@ copilot plugin marketplace update
 # Remove a plugin
 copilot plugin uninstall my-plugin
 ```
+
+### Automatic Updates for First-Party Plugins
+
+*(v1.0.78+)* First-party plugins — those from the official `copilot-plugins` marketplace — **automatically update to the latest version at session start**. This means you always have the newest capabilities without manually running `copilot plugin update`. Community plugins from `awesome-copilot` and other marketplaces still require a manual update step, giving you control over when changes take effect.
 
 ### Loading Plugins from a Local Directory
 
