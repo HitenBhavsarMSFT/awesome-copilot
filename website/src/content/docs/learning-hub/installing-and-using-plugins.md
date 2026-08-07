@@ -3,7 +3,7 @@ title: 'Installing and Using Plugins'
 description: 'Learn how to find, install, and manage plugins that extend GitHub Copilot CLI with reusable agents, skills, hooks, and integrations.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-07-28
+lastUpdated: 2026-08-07
 estimatedReadingTime: '8 minutes'
 tags:
   - plugins
@@ -231,6 +231,28 @@ copilot --plugin-dir /path/to/my-plugin
 ```
 
 Plugins loaded this way appear in `/plugin list` under a separate **External Plugins** section, clearly distinguished from marketplace-installed plugins. This is useful for testing local plugins in development or loading private plugins that aren't published to any marketplace.
+
+### Auto-updating First-Party Plugins
+
+*(v1.0.78+)* First-party plugins (those installed from the official `copilot-plugins` marketplace) automatically update to the latest version at the start of each session. You don't need to run `copilot plugin update` manually — Copilot checks for and applies updates silently in the background when you start a session.
+
+For community plugins from `awesome-copilot` and other third-party marketplaces, updates are still opt-in. Run `copilot plugin update` to pull the latest version when ready.
+
+### Enabling and Disabling Plugin Components
+
+*(v1.0.76+)* You can enable or disable individual components from within a running session using the `/plugins` command. This lets you temporarily turn off a specific agent, skill, hook, LSP server, or entire plugin without uninstalling it:
+
+```
+/plugins
+```
+
+The `/plugins` UI shows all loaded components — plugins, instructions, agents, LSP servers, and hooks — and lets you toggle each one on or off for the current session. This is useful when:
+
+- A hook is interfering with your current task
+- You want to test behavior without a specific agent loaded
+- You need to isolate which component is affecting the agent's behavior
+
+Changes made in `/plugins` apply immediately and persist across sessions until you re-enable them.
 
 ### Where Plugins Are Stored
 
