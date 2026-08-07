@@ -3,7 +3,7 @@ title: 'Using the Copilot Coding Agent'
 description: 'Learn how to use GitHub Copilot coding agent to autonomously work on issues, generate pull requests, and automate development tasks.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-05-13
+lastUpdated: 2026-08-07
 estimatedReadingTime: '12 minutes'
 tags:
   - coding-agent
@@ -333,6 +333,30 @@ This repository provides a curated collection of agents, skills, and hooks desig
 4. The hooks will run automatically during coding agent sessions
 
 > **Example workflow**: Combine a `test-specialist` agent with a `database-migrations` skill and a linting hook. Assign an issue to the coding agent using the test-specialist agent — it will automatically pick up the migrations skill when relevant, and the hook ensures all code is formatted before completion.
+
+## Undoing Agent Changes with /rewind
+
+*(v1.0.78+)* If a coding agent session goes in the wrong direction, use `/rewind` to roll back the files it changed:
+
+```
+/rewind
+```
+
+When you run `/rewind`, you can choose to undo:
+- **Conversation only** — clears the agent's recent turns from the context window, letting you re-prompt without the bad context
+- **Conversation + files** — also restores the actual files the agent modified back to their pre-session state
+
+`/rewind` works without requiring `git` — it tracks what the agent wrote and restores only those files, skipping any that have been modified outside the agent's changes since they were written. This makes it safe to use even mid-session when you've made manual edits alongside the agent's work.
+
+## Managing Approval Modes with /permissions
+
+*(v1.0.78+)* The `/permissions` command lets you switch between how the coding agent asks for approval when executing tools and commands:
+
+```
+/permissions
+```
+
+Use this to adjust the level of oversight without restarting the session — for example, switching to autopilot mode for well-understood tasks, or tightening approval requirements when the agent is working in sensitive parts of the codebase.
 
 ## Remote Control
 
