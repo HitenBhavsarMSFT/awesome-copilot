@@ -3,7 +3,7 @@ title: 'Installing and Using Plugins'
 description: 'Learn how to find, install, and manage plugins that extend GitHub Copilot CLI with reusable agents, skills, hooks, and integrations.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-07-28
+lastUpdated: 2026-08-09
 estimatedReadingTime: '8 minutes'
 tags:
   - plugins
@@ -34,6 +34,9 @@ A plugin bundles one or more of the following components:
 | **MCP Servers** | Model Context Protocol integrations for external tools | `.mcp.json` or `.github/mcp.json` |
 | **LSP Servers** | Language Server Protocol integrations | `lsp.json` or `.github/lsp.json` |
 | **Extensions** | IDE extensions installable via the plugin marketplace (v1.0.62+) | `extensions/` |
+| **Canvas Extensions** | Interactive canvas surfaces for the GitHub Copilot app (v1.0.79-7+) | `com.github.copilot/extensions/` |
+
+*(v1.0.79-7+)* Plugins using the Agent Plugins spec can now ship **canvas extensions** by placing them under a `com.github.copilot/extensions/` directory inside the plugin. This lets plugin authors bundle both agents/skills and the canvas UI surfaces that those agents interact with — delivering a complete interactive workflow in a single installable package. See [Working with Canvas Extensions](../working-with-canvas-extensions/) for details on canvas extension development.
 
 A plugin might include all of these or just one — for example, a plugin could provide a single specialized agent, or an entire development toolkit with multiple agents, skills, hooks, and MCP server configurations working together.
 
@@ -221,6 +224,8 @@ copilot plugin marketplace update
 # Remove a plugin
 copilot plugin uninstall my-plugin
 ```
+
+> **First-party plugin auto-updates** *(v1.0.78+)*: First-party plugins (those from the official `copilot-plugins` marketplace) **automatically update to the latest version at each session start**. You don't need to run `copilot plugin update` manually for these plugins — they stay current on their own. Third-party and community plugins continue to require explicit updates.
 
 ### Loading Plugins from a Local Directory
 
