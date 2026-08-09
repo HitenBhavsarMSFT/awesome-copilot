@@ -3,7 +3,7 @@ title: 'Working with Canvas Extensions'
 description: 'Create and iterate on GitHub Copilot app canvases using /create-canvas, then shape them into reusable project or personal extensions.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-06-17
+lastUpdated: 2026-08-09
 estimatedReadingTime: '8 minutes'
 tags:
   - copilot-app
@@ -138,5 +138,6 @@ The fastest loop is: **use the canvas**, note friction, and ask the agent for a 
 - Review the [GitHub Copilot app overview](../github-copilot-app/) for broader session and workflow concepts.
 - Browse the [Canvas Extensions page](../../extensions/) for discoverable extensions.
 - Fork one of the example extension folders above and adapt it to your own workflow.
+- *(v1.0.79-7+)* **Bundle canvas extensions in plugins**: Agent Plugins spec plugins can now ship canvas extensions under a `com.github.copilot/extensions/` directory, delivering agents and their UI surfaces as a single installable package. See [Installing and Using Plugins](../installing-and-using-plugins/) for details.
 
 ---
