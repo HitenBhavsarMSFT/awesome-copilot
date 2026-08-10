@@ -3,7 +3,7 @@ title: 'Copilot Configuration Basics'
 description: 'Learn how to configure GitHub Copilot at user, workspace, and repository levels to optimize your AI-assisted development experience.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-07-28
+lastUpdated: 2026-08-10
 estimatedReadingTime: '10 minutes'
 tags:
   - configuration
@@ -447,7 +447,9 @@ The model picker opens in a **full-screen view** with inline reasoning effort ad
 
 **Auto mode and server-side model routing** (v1.0.43+): When you select **Auto** as your model, the CLI uses server-side model routing for real-time model selection. Instead of locking in a single model at session start, Auto mode evaluates each request and routes it to the most appropriate model dynamically. This means straightforward questions can be handled by a faster model while complex reasoning tasks are automatically escalated — without you needing to switch models manually.
 
-**Model family aliases** (v1.0.64+): Instead of typing a full model name, you can use short family aliases in the model setting: `opus`, `sonnet`, `haiku` (Anthropic), and `gpt`, `gemini` (Google/OpenAI). The CLI resolves the alias to the latest available model in that family. This is especially useful in scripts or configuration files where you want to track the best model in a family without hardcoding a version string. Recent models available include **Claude Opus 5** (v1.0.75+), the latest in Anthropic's Opus family for the most demanding tasks.
+**Model family aliases** (v1.0.64+): Instead of typing a full model name, you can use short family aliases in the model setting: `opus`, `sonnet`, `haiku` (Anthropic), and `gpt`, `gemini` (Google/OpenAI). The CLI resolves the alias to the latest available model in that family. This is especially useful in scripts or configuration files where you want to track the best model in a family without hardcoding a version string. Recent models available include **Claude Opus 5** (v1.0.75+), the latest in Anthropic's Opus family for the most demanding tasks, and **kimi-k3** (v1.0.79+) from Moonshot AI.
+
+**Model picker grouping** *(v1.0.79+)*: The model picker groups models into **Recent**, **Recommended**, **New**, and other sections. Press **Shift+Tab** to switch between grouping views, making it easier to find recently used models or discover newly added ones.
 
 **Plan mode model** *(v1.0.74+)*: When using plan mode (which blocks file mutations and keeps changes in a planning phase), you can assign a *separate* model specifically for planning — different from your regular session model. This lets you use a fast, cost-effective model for plan drafting while keeping a more capable model on standby for the implementation phase:
 
@@ -469,6 +471,15 @@ The `/settings` command (v1.0.61+) opens an interactive dialog to browse and edi
 
 The settings dialog supports search — type to filter settings by name. Changes take effect immediately.
 
+*(v1.0.79+)* **`/model` is now session-scoped by default.** Changes you make with `/model` apply only to the current session. To set a persistent default model for future sessions, use `/config model` instead:
+
+```
+/model claude-sonnet-4.6     # change model for this session only
+/config model claude-sonnet-4.6  # set the default model for all future sessions
+```
+
+This separation makes it safe to experiment with different models mid-session without accidentally changing your long-term default.
+
 *(v1.0.70+)* The `/settings` command and the `/model` command both support **`--repo` and `--local` flags** for explicitly scoping which layer of settings you want to view or edit:
 
 ```
@@ -488,6 +499,8 @@ GitHub Copilot CLI has two commands for managing session state, with distinct be
 | `/clear [prompt]` | Abandons the current session entirely and starts a new one. Backgrounded sessions are not affected. MCP servers configured in your project are preserved in the new session. |
 
 Both commands accept an optional prompt argument to seed the new session with an opening message, for example `/new Add error handling to the login flow`.
+
+**Managing multiple sessions** *(v1.0.79+)*: The **Sessions tab** in the sidebar lets you manage multiple concurrent sessions without leaving your current terminal. Switch between active sessions, view their status, and create new ones — all from a single interface. This replaces the need to open multiple terminal windows when working on parallel tasks.
 
 The `/session rename` command renames the current session. When called **without a name argument**, it automatically generates a session name based on the conversation history:
 
@@ -564,6 +577,20 @@ In v1.0.66+, you can pass a task description to `/worktree` to name the branch f
 ```
 
 This creates a branch named from your task description and begins working on it immediately, making it easy to spin up parallel work without stopping to think of a branch name.
+
+*(v1.0.79+)* **`/worktree new`** starts a brand-new session in a fresh worktree. Unlike `/worktree <branch>` which carries over uncommitted changes, `/worktree new` gives you a clean slate in a new worktree — useful when you want to start a completely independent task without your current session's state:
+
+```
+/worktree new
+```
+
+**`worktreeBaseRef` setting** *(v1.0.79+)*: Controls the starting point for `/worktree`, `/worktree new`, and `--worktree`. All three now default to `HEAD`. Set `worktreeBaseRef` to `"default"` if you prefer worktrees to start from the remote default branch instead:
+
+```json
+{
+  "worktreeBaseRef": "default"
+}
+```
 
 After the command runs, the session is inside the new worktree. Use this when you want to work on a second task in parallel without stashing changes or opening a new terminal. In v1.0.64+ you can also use the experimental `--worktree` flag at startup (`copilot -w [name]`) to create or reuse a worktree under `<repo>.worktrees/` before the session begins.
 
@@ -754,6 +781,14 @@ copilot --plan          # start in plan mode (propose without executing)
 
 This is useful in scripts or CI pipelines where you want the CLI to immediately begin working in a specific mode without an interactive prompt.
 
+*(v1.0.79+)* You can combine `--plan` with `--mode autopilot` to first produce a plan and then immediately implement it without waiting for manual approval at each step:
+
+```bash
+copilot --plan --mode autopilot "Refactor the payment module to use the new billing API"
+```
+
+The agent generates a plan, then transitions directly into autopilot implementation — useful for well-defined tasks where you trust the plan and want minimal interruptions.
+
 The `--max-autopilot-continues` flag controls how many times Copilot can automatically continue in autopilot mode before pausing for confirmation. The default is 5:
 
 ```bash
@@ -770,6 +805,25 @@ copilot --no-sandbox -p "Set up development environment with system tools"
 ```
 
 These flags apply only to the current invocation — your persisted sandbox preference remains unchanged.
+
+**Sandbox configuration** *(v1.0.79+)*: The `/sandbox` command provides a full configuration dialog for managing sandbox settings interactively. It shows where settings are stored in `settings.json` and marks inactive settings as `(disabled)` with an explanation of why they are locked. The sandbox dialog now groups git, `gh`, and (on macOS) keychain authentication settings under a dedicated **Auth tab**:
+
+> **Breaking change (v1.0.79+)**: Sandbox auth settings have moved. The `sandbox.gitAuth` and `sandbox.ghAuth` keys are no longer read. Rename them in your `settings.json`:
+>
+> | Old key | New key |
+> |---------|---------|
+> | `sandbox.gitAuth` | `sandbox.auth.git` |
+> | `sandbox.ghAuth` | `sandbox.auth.gh` |
+
+> **Breaking change (v1.0.79+)**: The `allowDevToolCaches` sandbox setting is renamed to **`allowDevToolAccess`** (it now grants dev-tool config and registries in addition to caches). The old key is silently ignored — an existing `false` opt-out will revert to the default (enabled). Update your `settings.json` and any managed/MDM policy files.
+
+The `/sandbox policy` subcommand *(v1.0.79+)* shows the effective sandbox state: allowed and denied paths, active network access rules, and which settings are currently in force:
+
+```
+/sandbox policy
+```
+
+Use this to troubleshoot sandbox-related failures or verify that enterprise policy is applied correctly.
 
 The `--attachment` flag (available in prompt mode, `-p`) lets you attach files — images or native documents — to the initial prompt in non-interactive mode:
 
