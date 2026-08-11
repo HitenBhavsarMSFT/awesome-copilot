@@ -3,7 +3,7 @@ title: 'Installing and Using Plugins'
 description: 'Learn how to find, install, and manage plugins that extend GitHub Copilot CLI with reusable agents, skills, hooks, and integrations.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-07-28
+lastUpdated: 2026-08-11
 estimatedReadingTime: '8 minutes'
 tags:
   - plugins
@@ -34,6 +34,8 @@ A plugin bundles one or more of the following components:
 | **MCP Servers** | Model Context Protocol integrations for external tools | `.mcp.json` or `.github/mcp.json` |
 | **LSP Servers** | Language Server Protocol integrations | `lsp.json` or `.github/lsp.json` |
 | **Extensions** | IDE extensions installable via the plugin marketplace (v1.0.62+) | `extensions/` |
+
+Plugins that follow the **Agent Plugins spec** *(v1.0.79+)* can also ship extensions under a `com.github.copilot/extensions/` directory, enabling plugins to bundle IDE extensions alongside their agents, skills, and hooks in a single installable package.
 
 A plugin might include all of these or just one — for example, a plugin could provide a single specialized agent, or an entire development toolkit with multiple agents, skills, hooks, and MCP server configurations working together.
 
@@ -221,6 +223,24 @@ copilot plugin marketplace update
 # Remove a plugin
 copilot plugin uninstall my-plugin
 ```
+
+*(v1.0.78+)* **First-party plugins** (plugins from GitHub's official marketplace) are **automatically updated to the latest version at session start**. You no longer need to run `copilot plugin update` for GitHub's official plugins — they stay current automatically.
+
+*(v1.0.79+)* For third-party or custom marketplace entries, you can opt into **automatic updates** by adding `"autoUpdate": true` to the marketplace entry in your settings:
+
+```json
+{
+  "extraKnownMarketplaces": [
+    {
+      "name": "my-org-plugins",
+      "source": "my-org/internal-plugins",
+      "autoUpdate": true
+    }
+  ]
+}
+```
+
+With `autoUpdate` enabled, the plugins from that marketplace are updated to their latest versions at session start, alongside first-party plugins.
 
 ### Loading Plugins from a Local Directory
 
