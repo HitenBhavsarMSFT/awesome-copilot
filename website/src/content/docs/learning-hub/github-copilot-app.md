@@ -3,7 +3,7 @@ title: 'Getting Started with the GitHub Copilot app'
 description: 'Learn about the GitHub Copilot app, a desktop experience built for agent-native development. Understand its key features and who it''s for.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-06-17
+lastUpdated: 2026-08-12
 estimatedReadingTime: '8 minutes'
 tags:
   - copilot-app
@@ -204,6 +204,16 @@ open "ghapp://session/new?repo=owner/repo&mode=plan"
 - Deep links are **repo-centric** and expect `owner/repo`.
 - There is no deep link that directly opens an arbitrary local folder.
 - For local folders, use the app's **Add local folder** flow; if the folder is already a Git repository with a `github.com` remote, resolve that remote to `owner/repo` and use `session/new`.
+
+### Opening the App from the CLI
+
+If you're already in a Copilot CLI session, the `/app` command *(v1.0.79+, requires GitHub Copilot app v1.1.3+)* opens that session directly in the desktop app:
+
+```
+/app
+```
+
+This is useful when a CLI session grows complex — switch to the app's visual interface to get the My Work view, canvas support, and side-by-side session management without losing your current session context.
 
 ### Understanding Session Workflow
 
