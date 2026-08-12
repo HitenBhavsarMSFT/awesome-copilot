@@ -3,7 +3,7 @@ title: 'Copilot Configuration Basics'
 description: 'Learn how to configure GitHub Copilot at user, workspace, and repository levels to optimize your AI-assisted development experience.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-07-28
+lastUpdated: 2026-08-12
 estimatedReadingTime: '10 minutes'
 tags:
   - configuration
@@ -480,6 +480,8 @@ The settings dialog supports search — type to filter settings by name. Changes
 
 These flags mirror the **Repo** and **Repo (local)** scope tabs available in the `/settings` dashboard (v1.0.71+), making it easier to manage per-repository vs. user-global configuration without ambiguity. In v1.0.71+, the `/settings` dashboard also shows **Repo** and **Repo (local)** tabs alongside the existing user-level view, giving you a unified place to see which settings are applied at each layer.
 
+> **Session-scoped model (v1.0.79+)**: `/model` is now **session-scoped by default** — changing the model in one session no longer affects other sessions or future sessions. To set a persistent default model for all future sessions, use `/config model` instead of `/model`. This change makes it safe to switch models mid-session without accidentally changing your global preference.
+
 GitHub Copilot CLI has two commands for managing session state, with distinct behaviours:
 
 | Command | Behaviour |
@@ -564,6 +566,15 @@ In v1.0.66+, you can pass a task description to `/worktree` to name the branch f
 ```
 
 This creates a branch named from your task description and begins working on it immediately, making it easy to spin up parallel work without stopping to think of a branch name.
+
+**Starting a new session in a new worktree** *(v1.0.79+)*: Use `/worktree new` to create a new worktree **and** start a fresh session in it, leaving your current session running. Unlike `/worktree` which moves the current session into the new worktree, `/worktree new` opens a second, independent session side-by-side:
+
+```
+/worktree new                     # start a new session in a new worktree
+/worktree new my-feature-branch   # start in a named worktree
+```
+
+**`worktreeBaseRef` setting** *(v1.0.79+)*: The `worktreeBaseRef` setting controls whether `/worktree`, `/worktree new`, and `--worktree` create new branches starting from HEAD or from the remote default branch. All three now default to HEAD.
 
 After the command runs, the session is inside the new worktree. Use this when you want to work on a second task in parallel without stashing changes or opening a new terminal. In v1.0.64+ you can also use the experimental `--worktree` flag at startup (`copilot -w [name]`) to create or reuse a worktree under `<repo>.worktrees/` before the session begins.
 
@@ -725,6 +736,14 @@ Use `/autopilot` when you want to flip between supervised and unsupervised opera
 
 > **Auto allow-all mode (v1.0.69+)**: In addition to the standard allow-all mode (which approves everything), the CLI now supports an **auto allow-all** mode that uses an LLM judge to evaluate each tool request. When enabled, the judge automatically approves requests it evaluates as acceptable, and asks you for manual confirmation only for requests it considers risky. This gives you a middle ground between full autopilot and fully supervised operation — most routine actions proceed automatically while unusual or potentially dangerous actions still surface for your review. As of v1.0.69-3, this mode requires experimental features to be enabled — use `/experimental on` or start the CLI with `--experimental` — then activate it with `/allow-all auto`. The previous `AUTO_APPROVAL` environment variable approach has been removed in favour of experimental mode.
 
+The `/permissions` command *(v1.0.78+)* switches between approval modes interactively without typing out the full `/allow-all` commands:
+
+```
+/permissions
+```
+
+Use `/permissions` when you want a quick, menu-driven way to toggle between interactive, autopilot, and auto modes mid-session.
+
 > **Read-only `gh` CLI commands (v1.0.46+)**: Read-only `gh` commands — such as `gh issue list`, `gh pr view`, `gh run status`, and other commands that don't write to GitHub — are **automatically approved** without a permission prompt. Only commands that write to GitHub (like creating issues, merging PRs) still require explicit approval. This reduces friction during exploratory sessions where you frequently check issue or PR status.
 
 The `--effort` flag (shorthand for `--reasoning-effort`) controls how much computational reasoning the model applies to a request:
@@ -754,6 +773,14 @@ copilot --plan          # start in plan mode (propose without executing)
 
 This is useful in scripts or CI pipelines where you want the CLI to immediately begin working in a specific mode without an interactive prompt.
 
+> **Plan + autopilot combination** *(v1.0.79+)*: Combine `--plan` with `--mode autopilot` to have Copilot plan first and then implement autonomously without pausing for approval:
+>
+> ```bash
+> copilot --plan --mode autopilot "Add rate limiting to the login endpoint"
+> ```
+>
+> This is useful for well-defined tasks where you want a planning phase to ensure the approach is sound before Copilot proceeds without interruption.
+
 The `--max-autopilot-continues` flag controls how many times Copilot can automatically continue in autopilot mode before pausing for confirmation. The default is 5:
 
 ```bash
@@ -770,6 +797,14 @@ copilot --no-sandbox -p "Set up development environment with system tools"
 ```
 
 These flags apply only to the current invocation — your persisted sandbox preference remains unchanged.
+
+**Sandbox policy inspection** *(v1.0.79+)*: The `/sandbox policy` command shows the effective sandbox configuration for your current session — which paths are readable, writable, or blocked, what network access is allowed, and whether any settings are currently disabled and why:
+
+```
+/sandbox policy
+```
+
+Use `/sandbox policy` to understand what the sandbox is actually enforcing in a session, especially useful when debugging build or tool failures in sandboxed environments.
 
 The `--attachment` flag (available in prompt mode, `-p`) lets you attach files — images or native documents — to the initial prompt in non-interactive mode:
 
