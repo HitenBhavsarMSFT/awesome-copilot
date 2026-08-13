@@ -3,7 +3,7 @@ title: 'Copilot Configuration Basics'
 description: 'Learn how to configure GitHub Copilot at user, workspace, and repository levels to optimize your AI-assisted development experience.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-07-28
+lastUpdated: 2026-08-13
 estimatedReadingTime: '10 minutes'
 tags:
   - configuration
@@ -443,7 +443,7 @@ These files follow the same format as `config.json` and are loaded after the glo
 
 ### Model Picker
 
-The model picker opens in a **full-screen view** with inline reasoning effort adjustment. Use the **← / →** arrow keys to change the reasoning effort level (`low`, `medium`, `high`) directly from the picker without leaving the session. The current reasoning effort level is also displayed in the model header (e.g., `claude-sonnet-4.6 (high)`) so you always know which level is active.
+The model picker opens in a **full-screen view** with inline reasoning effort adjustment. Use the **← / →** arrow keys to change the reasoning effort level (`low`, `medium`, `high`) directly from the picker without leaving the session. The current reasoning effort level is also displayed in the model header (e.g., `claude-sonnet-4.6 (high)`) so you always know which level is active. *(v1.0.79+)* The picker groups models into **Recent**, **Recommended**, **New**, and other sections; press **Shift+Tab** to switch between grouping views.
 
 **Auto mode and server-side model routing** (v1.0.43+): When you select **Auto** as your model, the CLI uses server-side model routing for real-time model selection. Instead of locking in a single model at session start, Auto mode evaluates each request and routes it to the most appropriate model dynamically. This means straightforward questions can be handled by a faster model while complex reasoning tasks are automatically escalated — without you needing to switch models manually.
 
@@ -479,6 +479,8 @@ The settings dialog supports search — type to filter settings by name. Changes
 ```
 
 These flags mirror the **Repo** and **Repo (local)** scope tabs available in the `/settings` dashboard (v1.0.71+), making it easier to manage per-repository vs. user-global configuration without ambiguity. In v1.0.71+, the `/settings` dashboard also shows **Repo** and **Repo (local)** tabs alongside the existing user-level view, giving you a unified place to see which settings are applied at each layer.
+
+> **Session-scoped `/model` (v1.0.79+)**: `/model` is now **session-scoped by default** — changing it only affects the current session and does not persist. To set a default model for all future sessions, use `/config model` (or `--local`/`--repo` flags as above). This change prevents accidental global model changes when experimenting mid-session.
 
 GitHub Copilot CLI has two commands for managing session state, with distinct behaviours:
 
@@ -567,6 +569,23 @@ This creates a branch named from your task description and begins working on it 
 
 After the command runs, the session is inside the new worktree. Use this when you want to work on a second task in parallel without stashing changes or opening a new terminal. In v1.0.64+ you can also use the experimental `--worktree` flag at startup (`copilot -w [name]`) to create or reuse a worktree under `<repo>.worktrees/` before the session begins.
 
+*(v1.0.79+)* Use `/worktree new` to create a new worktree **and** immediately start a fresh session inside it, without switching the current session:
+
+```
+/worktree new                        # new worktree from HEAD on a generated branch name
+/worktree new fix-auth-bug           # new worktree on a named branch
+```
+
+This differs from `/worktree <branch>` (which switches the current session into the worktree) — `/worktree new` leaves your current session untouched and opens a parallel session in the new worktree. Ideal for starting a second independent task without interrupting the one you're in.
+
+**`worktreeBaseRef` setting** *(v1.0.79+)*: By default, `/worktree`, `/worktree new`, and `--worktree` all create the new branch from `HEAD`. Set `worktreeBaseRef` in your settings if you prefer a different starting point (such as the remote default branch):
+
+```json
+{
+  "worktreeBaseRef": "origin/main"
+}
+```
+
 The `/every` command (also available as `/loop` since v1.0.64) schedules a recurring prompt to run automatically at a specified interval. The companion `/after` command runs a prompt once after a specified delay. Both are useful for self-paced automation — polling for results, periodically summarizing progress, or triggering other slash commands on a timer:
 
 ```
@@ -636,6 +655,8 @@ The `/diagnose` command (v1.0.64+) analyzes the current session's logs and surfa
 Use `/diagnose` when a session is behaving unexpectedly — it inspects session logs and reports what it finds, making it easier to share diagnostics with support or understand what happened internally.
 
 **Keyboard shortcuts for queuing messages**: Use **Ctrl+Q** or **Ctrl+Enter** to queue a message (send it while the agent is still working). **Ctrl+D** no longer queues messages — it now has its default terminal behavior. If you have muscle memory for Ctrl+D queuing, switch to Ctrl+Q.
+
+*(v1.0.79+)* **Prompt queue**: You can now queue multiple prompts, shell commands, and supported slash commands in a local session to run in order after the current task finishes. Use **Ctrl+Q** or **Ctrl+Enter** while a task is running to enqueue the next one, and they will execute sequentially without further input. This is useful for chaining steps in a long workflow (for example, "fix the bug → run tests → open a PR") without waiting for each step to complete manually.
 
 **Background running tasks**: Press **Ctrl+X → B** to move the current running task or shell command to the background. The task continues executing while you can type a new message or review earlier output. This is useful for long-running commands where you want to interact with the agent while waiting for the result.
 
@@ -725,6 +746,14 @@ Use `/autopilot` when you want to flip between supervised and unsupervised opera
 
 > **Auto allow-all mode (v1.0.69+)**: In addition to the standard allow-all mode (which approves everything), the CLI now supports an **auto allow-all** mode that uses an LLM judge to evaluate each tool request. When enabled, the judge automatically approves requests it evaluates as acceptable, and asks you for manual confirmation only for requests it considers risky. This gives you a middle ground between full autopilot and fully supervised operation — most routine actions proceed automatically while unusual or potentially dangerous actions still surface for your review. As of v1.0.69-3, this mode requires experimental features to be enabled — use `/experimental on` or start the CLI with `--experimental` — then activate it with `/allow-all auto`. The previous `AUTO_APPROVAL` environment variable approach has been removed in favour of experimental mode.
 
+The `/permissions` command *(v1.0.78+)* lets you switch between approval modes interactively without memorising the different `/allow-all` subcommands:
+
+```
+/permissions    # open an interactive picker to choose between approval modes
+```
+
+Use it mid-session when you want to change from supervised to autopilot (or vice versa) and prefer a guided UI over typing `/allow-all on`/`off`.
+
 > **Read-only `gh` CLI commands (v1.0.46+)**: Read-only `gh` commands — such as `gh issue list`, `gh pr view`, `gh run status`, and other commands that don't write to GitHub — are **automatically approved** without a permission prompt. Only commands that write to GitHub (like creating issues, merging PRs) still require explicit approval. This reduces friction during exploratory sessions where you frequently check issue or PR status.
 
 The `--effort` flag (shorthand for `--reasoning-effort`) controls how much computational reasoning the model applies to a request:
@@ -753,6 +782,14 @@ copilot --plan          # start in plan mode (propose without executing)
 ```
 
 This is useful in scripts or CI pipelines where you want the CLI to immediately begin working in a specific mode without an interactive prompt.
+
+*(v1.0.79+)* Combine `--plan` with `--mode autopilot` to plan first and then implement without waiting for approval:
+
+```bash
+copilot --plan --mode autopilot -p "Refactor the payment module"
+```
+
+The agent produces a plan, then automatically enters autopilot to implement it — giving you a plan-then-execute workflow with no manual confirmation step in between.
 
 The `--max-autopilot-continues` flag controls how many times Copilot can automatically continue in autopilot mode before pausing for confirmation. The default is 5:
 
@@ -794,7 +831,17 @@ copilot --config-dir ~/.my-copilot-config
 
 Set `COPILOT_HOME` in your shell profile to use a custom config directory across all sessions. This is especially useful when running multiple Copilot configurations for different projects or teams.
 
-### Shell Completion
+### Authentication
+
+*(v1.0.77+)* `copilot login` now defaults to a **browser-based (web) OAuth flow** on local interactive terminals. A browser tab opens automatically, and you approve access — no device code required. On remote or headless terminals the device-code flow remains the default. You can force a specific flow with `--web-flow` or `--device-code`:
+
+```bash
+copilot login              # browser flow on local terminals (default)
+copilot login --web-flow   # force browser OAuth
+copilot login --device-code # force device-code flow (for headless / remote)
+```
+
+Or pick interactively via the `/login` command inside a running session.
 
 The `copilot completion` subcommand generates a static shell completion script for subcommands, flags, and known option values. Once installed, pressing Tab auto-completes Copilot CLI commands in your terminal.
 
