@@ -3,7 +3,7 @@ title: 'Using the Copilot Coding Agent'
 description: 'Learn how to use GitHub Copilot coding agent to autonomously work on issues, generate pull requests, and automate development tasks.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-05-13
+lastUpdated: 2026-08-14
 estimatedReadingTime: '12 minutes'
 tags:
   - coding-agent
@@ -376,6 +376,28 @@ Since v1.0.47, `--resume` also surfaces **cloud agent sessions that haven't yet 
 | No PR required | You can steer tasks that haven't yet opened a pull request |
 
 > **Note**: Remote control replaces the earlier "steering" feature. If you see references to steering in older documentation, remote control is the updated equivalent.
+
+## Plan-Then-Implement Mode
+
+*(v1.0.79+)* You can combine `--plan` with `--mode autopilot` to have the agent first draft a plan for your review, then automatically implement it without requiring approval for each step:
+
+```bash
+copilot --plan --mode autopilot
+```
+
+This is useful for longer coding tasks where you want to review the agent's approach before it starts making changes, but don't want to approve every individual tool call once implementation begins. The agent pauses after the planning phase for you to confirm, then proceeds autonomously through implementation.
+
+## Worktree Base Reference
+
+*(v1.0.79+)* When creating new worktrees with `/worktree`, `/worktree new`, or `--worktree`, you can configure whether they branch from your current HEAD or from the remote default branch using the `worktreeBaseRef` setting in your `settings.json`:
+
+```json
+{
+  "worktreeBaseRef": "HEAD"
+}
+```
+
+Accepted values are `"HEAD"` (the default) or `"remote"`. All three worktree commands now default to `HEAD`, meaning new worktrees start from your current commit. Previously, `--worktree` started from the remote default branch, which could cause unexpected divergence when your branch was ahead of the remote.
 
 ## Hooks and the Coding Agent
 

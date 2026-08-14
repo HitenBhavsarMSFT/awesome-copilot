@@ -3,7 +3,7 @@ title: 'Copilot Configuration Basics'
 description: 'Learn how to configure GitHub Copilot at user, workspace, and repository levels to optimize your AI-assisted development experience.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-07-28
+lastUpdated: 2026-08-14
 estimatedReadingTime: '10 minutes'
 tags:
   - configuration
@@ -232,6 +232,23 @@ In addition to model and effort settings, this file can also extend the URL, MCP
 **Why use this**: Pin a model when your team has agreed on the right cost/quality tradeoff for a project. Pin a high effort level for codebases where mistakes are expensive. Deny lists let you block specific MCP servers or URLs that aren't appropriate for a given project's security posture.
 
 > **Trust requirement**: The repository must be explicitly trusted by the user for these settings to take effect. This prevents untrusted repositories from changing your model or access restrictions without your knowledge.
+
+### Session Model vs. Default Model
+
+*(v1.0.79+)* The `/model` command in the CLI is **session-scoped** by default — it changes the model for the current session only and resets when you start a new session. To set a persistent default model for all future sessions, use `/config model` instead:
+
+```
+/model gpt-4.1          # changes model for this session only
+/config model gpt-4.1  # sets the default model for all future sessions
+```
+
+Or pass `--model` at session start to select a model for that run:
+
+```bash
+copilot --model claude-sonnet-5
+```
+
+This separation keeps session-specific model selection lightweight while providing a stable path for persistent default configuration.
 
 ### Custom Agents
 
