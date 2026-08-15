@@ -3,7 +3,7 @@ title: 'Installing and Using Plugins'
 description: 'Learn how to find, install, and manage plugins that extend GitHub Copilot CLI with reusable agents, skills, hooks, and integrations.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-07-28
+lastUpdated: 2026-08-15
 estimatedReadingTime: '8 minutes'
 tags:
   - plugins
@@ -160,6 +160,24 @@ To automatically register an additional marketplace for everyone working in a re
 
 With this in place, team members automatically get the `my-org-plugins` marketplace available without running a separate `marketplace add` command. This replaces the older `marketplaces` setting, which was removed in v1.0.16.
 
+### Auto-Updating Marketplace Plugins
+
+*(v1.0.79+)* Set `"autoUpdate": true` on an `extraKnownMarketplaces` entry to automatically update its plugins at every session start — no manual `copilot plugin update` required:
+
+```json
+{
+  "extraKnownMarketplaces": [
+    {
+      "name": "my-org-plugins",
+      "source": "my-org/internal-plugins",
+      "autoUpdate": true
+    }
+  ]
+}
+```
+
+This is useful for team-shared marketplaces where you always want everyone on the latest version. Note that `autoUpdate` and a pinned `sha` are mutually exclusive — pinning a SHA fixes the snapshot and disables automatic updates.
+
 ### Pinning a Marketplace to a Specific Commit
 
 *(v1.0.70+)* To ensure reproducibility and prevent unintended updates, you can pin a marketplace to an exact commit SHA using the `sha` field in the source configuration:
@@ -221,6 +239,8 @@ copilot plugin marketplace update
 # Remove a plugin
 copilot plugin uninstall my-plugin
 ```
+
+> **First-party plugin auto-update** *(v1.0.78+)*: GitHub's own first-party plugins automatically update to the latest version at each session start. You don't need to run `copilot plugin update` for official plugins — they stay current automatically.
 
 ### Loading Plugins from a Local Directory
 
