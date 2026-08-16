@@ -3,7 +3,7 @@ title: 'Agents and Subagents'
 description: 'Learn how delegated subagents differ from primary agents, when to use them, and how to launch them in VS Code and Copilot CLI.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-07-01
+lastUpdated: 2026-08-16
 estimatedReadingTime: '9 minutes'
 tags:
   - agents
@@ -133,6 +133,33 @@ The important behavior is different from a single chat turn:
 - subagents share the same filesystem, so overlapping writes should be avoided
 
 That makes `/fleet` a practical way to launch subagents even if you are not authoring custom agent files yourself.
+
+### Autopilot mode
+
+*(v1.0.79+)* `/autopilot` is now a **stable feature** — no experimental mode required. Set an explicit objective for the agent and let it drive autonomously toward completion:
+
+```
+/autopilot Implement the password reset flow described in issue #142
+```
+
+You can also combine it with `--plan` at startup to have the agent plan first, then implement without waiting for approval:
+
+```bash
+copilot --plan --mode autopilot "Add rate limiting to the login endpoint"
+```
+
+This is distinct from `/fleet`: autopilot drives a single continuous session toward a stated goal, while `/fleet` decomposes the work into parallel subagent tracks.
+
+### Prompt queueing
+
+*(v1.0.79+)* You can now queue prompts, shell commands, and supported slash commands to run **in order after the current task finishes**. Type your next prompt while the agent is still working — it is held in a pending queue and executed automatically when the current turn completes:
+
+```
+# While the agent is running, type your follow-up — it queues automatically.
+# A "pending · ctrl+c to cancel" indicator confirms the prompt is queued.
+```
+
+This is especially useful during long agentic tasks where you already know the next step — queue it up rather than watching and waiting.
 
 ### Rubber-duck agent
 

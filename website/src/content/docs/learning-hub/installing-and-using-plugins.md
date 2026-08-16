@@ -3,7 +3,7 @@ title: 'Installing and Using Plugins'
 description: 'Learn how to find, install, and manage plugins that extend GitHub Copilot CLI with reusable agents, skills, hooks, and integrations.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-07-28
+lastUpdated: 2026-08-16
 estimatedReadingTime: '8 minutes'
 tags:
   - plugins
@@ -160,6 +160,24 @@ To automatically register an additional marketplace for everyone working in a re
 
 With this in place, team members automatically get the `my-org-plugins` marketplace available without running a separate `marketplace add` command. This replaces the older `marketplaces` setting, which was removed in v1.0.16.
 
+### Auto-Updating Marketplace Plugins
+
+*(v1.0.79+)* Add `"autoUpdate": true` to any `extraKnownMarketplaces` entry to automatically refresh that marketplace's plugins each time a CLI session starts:
+
+```json
+{
+  "extraKnownMarketplaces": [
+    {
+      "name": "my-org-plugins",
+      "source": "my-org/internal-plugins",
+      "autoUpdate": true
+    }
+  ]
+}
+```
+
+This ensures everyone on the team always has the latest version of internal plugins without needing to run `copilot plugin update` manually. For external or community marketplaces where you want stability, omit this field and update on your own schedule.
+
 ### Pinning a Marketplace to a Specific Commit
 
 *(v1.0.70+)* To ensure reproducibility and prevent unintended updates, you can pin a marketplace to an exact commit SHA using the `sha` field in the source configuration:
@@ -293,6 +311,38 @@ The CLI reads the manifest, discovers the bundled agents, skills, and MCP server
 Open Plugin Spec v1 also standardizes how MCP server configuration is bundled in plugins. A plugin can now include an `mcp.json` file at its root to declare MCP servers it requires — using the same format as `.mcp.json` or `.github/mcp.json` in your repository. When you install such a plugin, its MCP server configuration is automatically merged into your active server list.
 
 This is useful for plugins that bundle dedicated tooling (for example, a database plugin that ships its own MCP server) — users get both the agent/skill and the required MCP server in a single install step.
+
+## Agent Plugin Spec: Directory Layout (Breaking Change in v1.0.79)
+
+*(v1.0.79+)* **Breaking change for plugin authors**: Agent Plugin spec plugins now require all component directories to live under a `com.github.copilot/` subdirectory in the plugin root, rather than at the root itself. The CLI reads `commands/`, `agents/`, `rules/`, `hooks/hooks.json`, `lsp.json`, and `extensions/` only from `com.github.copilot/`, and silently ignores those same paths at the plugin root.
+
+**Before (old layout — no longer works):**
+
+```
+my-plugin/
+├── agents/
+│   └── my-agent.agent.md       ← ignored in v1.0.79+
+├── hooks/
+│   └── hooks.json              ← ignored in v1.0.79+
+└── plugin.json
+```
+
+**After (new required layout):**
+
+```
+my-plugin/
+├── com.github.copilot/
+│   ├── agents/
+│   │   └── my-agent.agent.md   ← loaded
+│   ├── hooks/
+│   │   └── hooks.json          ← loaded
+│   └── extensions/
+├── plugin.json
+```
+
+> **Why this change?** The namespaced directory prevents collisions when plugins from different vendors include components — each vendor's files live under their own namespace, so there's no risk of one plugin overwriting another's agents or hooks.
+
+If you have published a plugin, update its layout before users upgrade to v1.0.79+. The CLI will show a helpful error message pointing to the file that needs to be moved if it detects components in the old location.
 
 ## Best Practices
 
