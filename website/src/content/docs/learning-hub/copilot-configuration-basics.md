@@ -3,7 +3,7 @@ title: 'Copilot Configuration Basics'
 description: 'Learn how to configure GitHub Copilot at user, workspace, and repository levels to optimize your AI-assisted development experience.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-07-28
+lastUpdated: 2026-08-16
 estimatedReadingTime: '10 minutes'
 tags:
   - configuration
@@ -445,6 +445,17 @@ These files follow the same format as `config.json` and are loaded after the glo
 
 The model picker opens in a **full-screen view** with inline reasoning effort adjustment. Use the **← / →** arrow keys to change the reasoning effort level (`low`, `medium`, `high`) directly from the picker without leaving the session. The current reasoning effort level is also displayed in the model header (e.g., `claude-sonnet-4.6 (high)`) so you always know which level is active.
 
+*(v1.0.79+)* The model picker now groups models into **Recent**, **Recommended**, **New**, and other sections. Press **Shift+Tab** to switch between grouping views. This makes it easier to discover newly added models without scrolling through the full list.
+
+**Session-scoped model (v1.0.79+)**: `/model` is now **session-scoped by default**. Changing the model with `/model` applies only to the current session and does not affect future sessions. To set a persistent default model for all new sessions, use `/config model`:
+
+```
+/model claude-sonnet-4.6       # change model for this session only
+/config model claude-sonnet-4.6  # set as your default for all future sessions
+```
+
+This separation makes it safe to experiment with different models mid-session without accidentally changing your preferred default.
+
 **Auto mode and server-side model routing** (v1.0.43+): When you select **Auto** as your model, the CLI uses server-side model routing for real-time model selection. Instead of locking in a single model at session start, Auto mode evaluates each request and routes it to the most appropriate model dynamically. This means straightforward questions can be handled by a faster model while complex reasoning tasks are automatically escalated — without you needing to switch models manually.
 
 **Model family aliases** (v1.0.64+): Instead of typing a full model name, you can use short family aliases in the model setting: `opus`, `sonnet`, `haiku` (Anthropic), and `gpt`, `gemini` (Google/OpenAI). The CLI resolves the alias to the latest available model in that family. This is especially useful in scripts or configuration files where you want to track the best model in a family without hardcoding a version string. Recent models available include **Claude Opus 5** (v1.0.75+), the latest in Anthropic's Opus family for the most demanding tasks.
@@ -564,6 +575,22 @@ In v1.0.66+, you can pass a task description to `/worktree` to name the branch f
 ```
 
 This creates a branch named from your task description and begins working on it immediately, making it easy to spin up parallel work without stopping to think of a branch name.
+
+*(v1.0.79+)* Use `/worktree new` to start a completely fresh session in a new worktree without carrying over your current changes:
+
+```
+/worktree new my-clean-branch
+```
+
+This is useful when you want a clean slate — for example, to start a new feature from HEAD without the uncommitted changes in your current worktree.
+
+The `worktreeBaseRef` setting (v1.0.79+) controls which commit `/worktree`, `/worktree new`, and `--worktree` branch from. The default is **HEAD** (your current commit). To branch from the remote default branch instead:
+
+```json
+{
+  "worktreeBaseRef": "origin/main"
+}
+```
 
 After the command runs, the session is inside the new worktree. Use this when you want to work on a second task in parallel without stashing changes or opening a new terminal. In v1.0.64+ you can also use the experimental `--worktree` flag at startup (`copilot -w [name]`) to create or reuse a worktree under `<repo>.worktrees/` before the session begins.
 
