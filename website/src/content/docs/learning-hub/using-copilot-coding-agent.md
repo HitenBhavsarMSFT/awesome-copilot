@@ -3,7 +3,7 @@ title: 'Using the Copilot Coding Agent'
 description: 'Learn how to use GitHub Copilot coding agent to autonomously work on issues, generate pull requests, and automate development tasks.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-05-13
+lastUpdated: 2026-08-17
 estimatedReadingTime: '12 minutes'
 tags:
   - coding-agent
@@ -131,6 +131,16 @@ Or provide more specific direction:
 @copilot implement the user avatar upload feature described above.
 Use the existing FileUpload component and S3 service.
 ```
+
+### Using Plan-then-Implement Mode (CLI)
+
+*(v1.0.79+)* When using the CLI, you can combine `--plan` with `--mode autopilot` to have Copilot first generate a plan and then immediately implement it — without waiting for your approval between the two phases:
+
+```bash
+copilot --plan --mode autopilot "Add input validation to the registration endpoint"
+```
+
+This is useful for well-defined tasks where you trust the plan to be correct and want the agent to proceed autonomously. Omit `--mode autopilot` if you want to review and approve the plan before implementation begins.
 
 ### Using Custom Agents
 

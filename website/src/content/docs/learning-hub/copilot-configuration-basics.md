@@ -3,7 +3,7 @@ title: 'Copilot Configuration Basics'
 description: 'Learn how to configure GitHub Copilot at user, workspace, and repository levels to optimize your AI-assisted development experience.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-07-28
+lastUpdated: 2026-08-17
 estimatedReadingTime: '10 minutes'
 tags:
   - configuration
@@ -445,6 +445,8 @@ These files follow the same format as `config.json` and are loaded after the glo
 
 The model picker opens in a **full-screen view** with inline reasoning effort adjustment. Use the **← / →** arrow keys to change the reasoning effort level (`low`, `medium`, `high`) directly from the picker without leaving the session. The current reasoning effort level is also displayed in the model header (e.g., `claude-sonnet-4.6 (high)`) so you always know which level is active.
 
+*(v1.0.79+)* The model picker now organizes models into grouped sections — **Recent**, **Recommended**, **New**, and other categories — so you can quickly find and compare options. Press **Shift+Tab** to switch between grouping views. New models available include **kimi-k3**.
+
 **Auto mode and server-side model routing** (v1.0.43+): When you select **Auto** as your model, the CLI uses server-side model routing for real-time model selection. Instead of locking in a single model at session start, Auto mode evaluates each request and routes it to the most appropriate model dynamically. This means straightforward questions can be handled by a faster model while complex reasoning tasks are automatically escalated — without you needing to switch models manually.
 
 **Model family aliases** (v1.0.64+): Instead of typing a full model name, you can use short family aliases in the model setting: `opus`, `sonnet`, `haiku` (Anthropic), and `gpt`, `gemini` (Google/OpenAI). The CLI resolves the alias to the latest available model in that family. This is especially useful in scripts or configuration files where you want to track the best model in a family without hardcoding a version string. Recent models available include **Claude Opus 5** (v1.0.75+), the latest in Anthropic's Opus family for the most demanding tasks.
@@ -458,6 +460,13 @@ The model picker opens in a **full-screen view** with inline reasoning effort ad
 ```
 
 When you leave plan mode, the CLI automatically reverts to your session model. This pairing works well with repository model pinning — you can enforce a high-quality model for implementation while allowing a lighter model during exploration and planning.
+
+**Session-scoped `/model`** *(v1.0.79+)*: `/model` is now session-scoped by default — changes apply only to the current session and do not persist. To set a default model for all future sessions, use `/config model` instead:
+
+```
+/model claude-sonnet-4.6    # change model for this session only
+/config model claude-sonnet-4.6  # set default model for all future sessions
+```
 
 ### CLI Session Commands
 
@@ -566,6 +575,8 @@ In v1.0.66+, you can pass a task description to `/worktree` to name the branch f
 This creates a branch named from your task description and begins working on it immediately, making it easy to spin up parallel work without stopping to think of a branch name.
 
 After the command runs, the session is inside the new worktree. Use this when you want to work on a second task in parallel without stashing changes or opening a new terminal. In v1.0.64+ you can also use the experimental `--worktree` flag at startup (`copilot -w [name]`) to create or reuse a worktree under `<repo>.worktrees/` before the session begins.
+
+*(v1.0.79+)* Use `/worktree new` to start a new session in a **brand-new worktree** without moving existing changes. This is distinct from `/worktree <branch>` (which carries uncommitted changes to the new worktree) — `/worktree new` always starts clean. The `worktreeBaseRef` setting controls whether `/worktree`, `/worktree new`, and `--worktree` start from `HEAD` or the remote default branch; all three now default to `HEAD`.
 
 The `/every` command (also available as `/loop` since v1.0.64) schedules a recurring prompt to run automatically at a specified interval. The companion `/after` command runs a prompt once after a specified delay. Both are useful for self-paced automation — polling for results, periodically summarizing progress, or triggering other slash commands on a timer:
 
@@ -770,6 +781,12 @@ copilot --no-sandbox -p "Set up development environment with system tools"
 ```
 
 These flags apply only to the current invocation — your persisted sandbox preference remains unchanged.
+
+*(v1.0.79+)* Use `/sandbox policy` to inspect the **effective sandbox configuration** for the current session — this shows which paths are read-only or write-allowed, active denials, and whether network access is enabled. This is especially useful for diagnosing permission errors inside sandboxed commands:
+
+```
+/sandbox policy
+```
 
 The `--attachment` flag (available in prompt mode, `-p`) lets you attach files — images or native documents — to the initial prompt in non-interactive mode:
 
