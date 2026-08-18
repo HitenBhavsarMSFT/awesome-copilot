@@ -3,7 +3,7 @@ title: 'Understanding Copilot Context'
 description: 'Learn how GitHub Copilot uses context from your code, workspace, and conversation to generate relevant suggestions.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2025-11-28
+lastUpdated: 2026-08-18
 estimatedReadingTime: '8 minutes'
 tags:
   - context
@@ -11,6 +11,8 @@ tags:
   - how-it-works
 relatedArticles:
   - ./what-are-agents-skills-instructions.md
+  - ./defining-custom-instructions.md
+  - ./automating-with-hooks.md
 ---
 
 Context is the foundation of how GitHub Copilot generates relevant, accurate suggestions. Understanding what Copilot "sees" and how it uses that information helps you write better prompts, get higher-quality completions, and work more effectively with AI assistance. This article explains the types of context Copilot uses and how to optimize your development environment for better results.
@@ -56,6 +58,38 @@ In GitHub Copilot Chat, conversation context includes all previous messages, que
 Workspace context includes project-level information like your directory structure, configuration files (`.gitignore`, `package.json`, `tsconfig.json`), and overall repository organization. This helps Copilot understand your project type, dependencies, and conventions.
 
 **Example**: If your workspace contains a `package.json` with TypeScript and React dependencies, Copilot recognizes this is a TypeScript React project and generates suggestions using appropriate patterns and types.
+
+## Repository Customizations as Persistent Context
+
+Beyond what's open in your editor, GitHub Copilot automatically picks up several types of repository-level files that provide persistent context across all sessions. These are the most powerful way to shape Copilot's behavior for your project.
+
+### Custom Instructions (`.instructions.md`)
+
+Custom instruction files (stored in `.github/instructions/`) are automatically read by Copilot whenever you work on files matching their `applyTo` glob patterns. They provide passive, always-on context — you don't have to reference them explicitly.
+
+**Example**: An instruction file scoped to `**/*.tsx` might define your team's React component conventions. Every time Copilot helps with a `.tsx` file, it follows those conventions automatically.
+
+**Learn more**: [Defining Custom Instructions](../defining-custom-instructions/)
+
+### AGENTS.md
+
+The `AGENTS.md` file (placed at the repository root or in `.github/`) is an emerging cross-platform standard for project-level AI instructions. GitHub Copilot reads it alongside your other configuration files, making it useful when you want instructions that work across multiple AI tools.
+
+**Learn more**: [AGENTS.md Specification](https://agents.md/)
+
+### Skills as On-Demand Context
+
+Skills package instructions, reference documents, templates, and scripts into a single unit that Copilot can invoke on demand. Unlike passive instructions, skills are activated explicitly — either by a user running `/skill-name` or by an agent discovering and invoking them automatically. When invoked, the skill's bundled content becomes part of the active context for that task.
+
+**Learn more**: [Creating Effective Skills](../creating-effective-skills/)
+
+### Dynamic Context from Hooks
+
+Hooks can inject additional context directly into a session or individual prompt at runtime. The `sessionStart` hook's `additionalContext` output is injected at the beginning of each session (for example, the current git branch, open issues, or environment state). The `userPromptSubmitted` hook's `additionalContext` output is prepended to the model prompt for individual requests.
+
+This lets you surface dynamic, environment-specific information without requiring users to paste it manually.
+
+**Learn more**: [Automating with Hooks](../automating-with-hooks/)
 
 ## How Context Influences Suggestions
 
@@ -157,6 +191,11 @@ A: Yes, you have several ways to control context:
 - Use `#` mentions to explicitly reference specific files, symbols or functions
 - Configure `.gitignore` to exclude files from workspace context
 - Use instructions and skills to provide persistent context for specific scenarios
+- Use hooks to inject dynamic context at session start or per-prompt (via `additionalContext`)
+
+**Q: What's the difference between editor context and repository customizations?**
+
+A: Editor context is transient — it's what Copilot sees from your open files during the current session. Repository customizations (instructions, `AGENTS.md`, skills) are persistent — they're committed to your repository and apply automatically every time Copilot works in that codebase, regardless of which files you have open.
 
 **Q: Does closing a file remove it from context?**
 
@@ -167,6 +206,7 @@ A: Yes, closing a file can remove it from Copilot's active context. However, fil
 Now that you understand how context works in GitHub Copilot, explore these related topics:
 
 - **[What are Agents, Skills, and Instructions](../what-are-agents-skills-instructions/)** - Learn about customization types that provide persistent context
-- **[Copilot Configuration Basics](../copilot-configuration-basics/)** - Configure settings to optimize context usage
+- **[Defining Custom Instructions](../defining-custom-instructions/)** - Create instructions that automatically shape every Copilot session in your repo
 - **[Creating Effective Skills](../creating-effective-skills/)** - Use context effectively in your skills
-- **Common Pitfalls and Solutions** _(coming soon)_ - Avoid context-related mistakes
+- **[Automating with Hooks](../automating-with-hooks/)** - Inject dynamic context at session start or per-prompt
+- **[Copilot Configuration Basics](../copilot-configuration-basics/)** - Configure settings to optimize context usage
