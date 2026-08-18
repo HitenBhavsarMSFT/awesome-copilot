@@ -3,7 +3,7 @@ title: 'GitHub Copilot Terminology Glossary'
 description: 'A quick reference guide defining common GitHub Copilot and platform-specific terms.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-04-02
+lastUpdated: 2026-08-18
 estimatedReadingTime: '8 minutes'
 tags:
   - glossary
@@ -244,6 +244,82 @@ An installable package that extends GitHub Copilot CLI with a bundled set of age
 **Learn more**: [Installing and Using Plugins](../installing-and-using-plugins/)
 
 **Related terms**: [Agent](#agent), [Skill](#skill), [Hook](#hook)
+
+---
+
+### Agentic Workflow
+
+A GitHub Actions workflow that runs a Copilot coding agent to autonomously complete tasks on a schedule, in response to repository events, or via slash commands. Agentic workflows are defined in a single `.md` file containing YAML frontmatter (triggers, permissions, safe-outputs) and natural language instructions. The `.md` source is compiled to a `.lock.yml` Actions file using the `gh aw` CLI.
+
+**Key characteristics**:
+- Written in markdown with natural language — no YAML Actions syntax required
+- Triggered by schedules, events, or slash commands (e.g., `/run daily-report`)
+- Use least-privilege permissions and safe outputs for security
+- Compiled to `.lock.yml` files via `gh aw compile`
+
+**Example**: A daily workflow that summarizes open issues and posts a comment to a tracking issue each morning.
+
+**When to use**: For recurring, automatable tasks like issue triage, release notes generation, or compliance checks that benefit from AI reasoning rather than hard-coded scripts.
+
+**Learn more**: [Agentic Workflows](../agentic-workflows/) | [GitHub Agentic Workflows reference](https://gh.io/gh-aw)
+
+**Related terms**: [Coding Agent](#coding-agent), [Hook](#hook)
+
+---
+
+### Automation
+
+A recurring task configured in the GitHub Copilot app that runs a Copilot agent session on a schedule or on demand. Automations are distinct from [Agentic Workflows](#agentic-workflow): they run inside the Copilot app rather than GitHub Actions and are configured through the app's UI rather than a committed workflow file.
+
+**Key characteristics**:
+- Created and managed through the Copilot app's Automations panel
+- Can run manually, hourly, daily, or weekly
+- Use the same repository context as interactive sessions
+- Results appear in the app's My Work view
+
+**Example**: A daily automation that summarizes pull requests updated in the last 24 hours and posts a summary to the app.
+
+**When to use**: For lightweight, exploratory, or team-specific recurring tasks that don't need to run in GitHub Actions or be version-controlled as workflow files.
+
+**Learn more**: [Using Automations in the GitHub Copilot app](../using-automations-in-copilot-app/)
+
+**Related terms**: [Agentic Workflow](#agentic-workflow), [Coding Agent](#coding-agent)
+
+---
+
+### Canvas Extension
+
+An interactive, visual work surface inside the GitHub Copilot app that both users and agents can read from and update. A canvas extension is a small JavaScript module (`extension.mjs`) that defines the UI controls (buttons, forms, boards) and the callable capabilities the agent can invoke to update the canvas state.
+
+**Key characteristics**:
+- Runs in the right panel of the Copilot app alongside an agent session
+- Bidirectional: users interact via UI, agents update via callable capabilities
+- Can be project-scoped (`.github/extensions/`) or user-scoped (`~/.copilot/extensions/`)
+- Created interactively using `/create-canvas` inside an agent session
+
+**Example**: An issue triage board where the agent can update priorities and labels, and the developer can filter and sort the list.
+
+**When to use**: When you want a visible, interactive artifact alongside your agent session — for triage boards, planning documents, release checklists, or live workflow surfaces.
+
+**Learn more**: [Working with Canvas Extensions](../working-with-canvas-extensions/)
+
+**Related terms**: [Agent](#agent), [Plugin](#plugin)
+
+---
+
+### Worktree
+
+An isolated Git working directory created by the Copilot app when starting an agent session. Each session gets its own worktree and branch, so multiple agents can work on different tasks simultaneously without conflicting file changes. Worktrees are managed automatically — you don't need to create or delete them manually.
+
+**Key characteristics**:
+- Each agent session runs in its own isolated checkout of the repository
+- Enables true parallel agent work without merge conflicts between active sessions
+- Created automatically when starting a session in the Copilot app
+- Cleaned up when the session ends or the PR is merged
+
+**When to use**: Worktrees are a behind-the-scenes detail. Understanding them explains why the Copilot app can safely run multiple agents on the same repository at the same time.
+
+**Related terms**: [Coding Agent](#coding-agent), [Automation](#automation)
 
 ---
 
