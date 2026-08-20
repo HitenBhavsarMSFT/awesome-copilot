@@ -3,7 +3,7 @@ title: 'Agents and Subagents'
 description: 'Learn how delegated subagents differ from primary agents, when to use them, and how to launch them in VS Code and Copilot CLI.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-07-01
+lastUpdated: 2026-08-20
 estimatedReadingTime: '9 minutes'
 tags:
   - agents
@@ -193,6 +193,41 @@ That means you should think about delegation features in product-specific terms:
 - **GitHub.com coding agent / cloud agent**: supports custom agents, but some VS Code-specific frontmatter is intentionally ignored
 
 If you share agent files across surfaces, document those differences so users know which behaviors are portable and which are editor-specific.
+
+## Managing Multiple Concurrent Sessions in Copilot CLI
+
+In addition to subagent delegation, the Copilot CLI supports running multiple independent top-level sessions at the same time via the **Sessions sidebar**. This is different from subagents: each session is a full conversation with its own context, model, and working directory — not a worker spawned by an orchestrator.
+
+### When to use multiple sessions vs. subagents
+
+| Approach | Best for |
+|----------|---------|
+| **Subagents (`/fleet`)** | A single orchestrated task decomposed into parallel work items, all coordinated by one parent agent |
+| **Multiple sessions** | Completely independent tasks where you want separate conversations, different agents, or isolated environments running at the same time |
+
+### Enabling the Sessions sidebar
+
+The Sessions sidebar is available from the **Sessions tab** in the CLI. Use it to:
+
+- **Switch** between running sessions without interrupting either one
+- **Spawn** new sessions in parallel (each with its own working directory and agent)
+- **See status** at a glance — which sessions are running, waiting, or finished
+
+### Example: parallel independent tracks
+
+```text
+Session 1: /fleet "Refactor the authentication service"
+Session 2: "Write documentation for the payments API"
+Session 3: copilot --worktree "Fix the flaky integration test"  (in a new worktree)
+```
+
+All three conversations run concurrently. You can switch to any session, steer it, and return — without the sessions interfering with each other.
+
+### Worktrees and session isolation
+
+When you start a session with `/worktree new`, the CLI creates a fresh git worktree (an isolated copy of the repository) and begins a new conversation inside it. This gives each session its own branch and working state, so multiple sessions can make conflicting edits in the same repository without stepping on each other — the same isolation model the Copilot app uses for parallel agent work.
+
+> **Tip**: Use `/worktree new` when you want the current session to continue and a fresh session to tackle a new task independently in an isolated branch.
 
 ## Common questions
 
