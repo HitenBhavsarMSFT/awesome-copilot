@@ -3,7 +3,7 @@ title: 'Getting Started with the GitHub Copilot app'
 description: 'Learn about the GitHub Copilot app, a desktop experience built for agent-native development. Understand its key features and who it''s for.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-06-17
+lastUpdated: 2026-08-20
 estimatedReadingTime: '8 minutes'
 tags:
   - copilot-app
@@ -145,6 +145,16 @@ Once installed, you can create a session by:
 3. **From your inbox**: The app syncs your GitHub inbox—click an issue and start a session for it
 
 Each session runs in its own worktree with its own isolated environment. You can run multiple sessions in parallel.
+
+### Opening the App from a CLI Session
+
+If you're already working in a GitHub Copilot CLI session and want to continue that work in the Copilot desktop app, use the `/app` command:
+
+```
+/app
+```
+
+This opens the current CLI session in the Copilot app (requires GitHub Copilot app 1.1.3 or later). The conversation, context, and work in progress transfer to the app's interface, giving you the visual control center without losing your session state.
 
 ### Launching Sessions from the Terminal with Deep Links
 
