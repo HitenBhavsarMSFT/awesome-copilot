@@ -3,7 +3,7 @@ title: 'Copilot Configuration Basics'
 description: 'Learn how to configure GitHub Copilot at user, workspace, and repository levels to optimize your AI-assisted development experience.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-07-28
+lastUpdated: 2026-08-22
 estimatedReadingTime: '10 minutes'
 tags:
   - configuration
@@ -459,6 +459,16 @@ The model picker opens in a **full-screen view** with inline reasoning effort ad
 
 When you leave plan mode, the CLI automatically reverts to your session model. This pairing works well with repository model pinning — you can enforce a high-quality model for implementation while allowing a lighter model during exploration and planning.
 
+**Session-scoped `/model` and `/config model`** *(v1.0.79+)*: The `/model` command is now session-scoped by default — changes apply only to the current session and don't persist. To set a model that applies to all future sessions, use `/config model` instead:
+
+```
+/model claude-sonnet-4.6      # change the model for this session only
+/config model claude-sonnet-4.6  # set the default model for future sessions
+/config model                    # open the picker to choose a default model
+```
+
+This separation keeps your session-specific model experiments from inadvertently changing your long-term preferences. The model groups in the picker are now also organized into **Recent**, **Recommended**, **New**, and other sections, with **Shift+Tab** to switch grouping views.
+
 ### CLI Session Commands
 
 The `/settings` command (v1.0.61+) opens an interactive dialog to browse and edit all user settings in one place. Use it to discover available settings, toggle options, and update values without manually editing your config file:
@@ -517,6 +527,14 @@ You can also press **x** on a highlighted session in the session picker (`--resu
 
 In the session picker, press **`s`** to cycle the sort order: relevance, last used, created, or name. The picker also shows the branch name and idle/in-use status for each session.
 
+*(v1.0.79+)* **Sessions sidebar for concurrent sessions**: The CLI now supports managing multiple concurrent sessions from a **Sessions sidebar**. You can switch between active sessions, spawn new ones, and see each session's status at a glance — all without leaving your terminal. Turn it on with `/experimental on` to enable the split-view sidebar. Use **Ctrl+Q** to queue prompts for the current session, and switch between sessions with the sidebar controls.
+
+*(v1.0.79+)* The **`/app` command** opens the current terminal session in the GitHub Copilot desktop app (requires GitHub Copilot app v1.1.3 or later). This is useful when you want to transition from a terminal workflow to the visual app interface — for example, to view parallel sessions, inspect agent work, or take advantage of the app's My Work dashboard:
+
+```
+/app       # open the current session in the GitHub Copilot desktop app
+```
+
 The `/rewind` command opens a timeline picker that lets you roll back the conversation to any earlier point in history, reverting both the conversation and any file changes made after that point. You can also trigger it by pressing **double-Esc**:
 
 ```
@@ -566,6 +584,25 @@ In v1.0.66+, you can pass a task description to `/worktree` to name the branch f
 This creates a branch named from your task description and begins working on it immediately, making it easy to spin up parallel work without stopping to think of a branch name.
 
 After the command runs, the session is inside the new worktree. Use this when you want to work on a second task in parallel without stashing changes or opening a new terminal. In v1.0.64+ you can also use the experimental `--worktree` flag at startup (`copilot -w [name]`) to create or reuse a worktree under `<repo>.worktrees/` before the session begins.
+
+*(v1.0.79+)* Use `/worktree new` to start an entirely fresh session in a new worktree without carrying over any uncommitted changes from your current session:
+
+```
+/worktree new                          # new worktree with a fresh session
+/worktree new "implement dark mode"    # new worktree with an opening task prompt
+```
+
+This is distinct from `/worktree <task>` (which moves your current work to a new worktree): `/worktree new` leaves the current session untouched and opens a clean slate in a new branch.
+
+You can control whether `/worktree`, `/worktree new`, and the `--worktree` startup flag branch from `HEAD` or from the remote default branch using the `worktreeBaseRef` setting. Both default to `HEAD`:
+
+```json
+{
+  "worktreeBaseRef": "HEAD"            // branch from your current commit (default)
+}
+```
+
+Set it to `"remote"` to always start from the latest remote default branch instead.
 
 The `/every` command (also available as `/loop` since v1.0.64) schedules a recurring prompt to run automatically at a specified interval. The companion `/after` command runs a prompt once after a specified delay. Both are useful for self-paced automation — polling for results, periodically summarizing progress, or triggering other slash commands on a timer:
 
@@ -637,6 +674,8 @@ Use `/diagnose` when a session is behaving unexpectedly — it inspects session 
 
 **Keyboard shortcuts for queuing messages**: Use **Ctrl+Q** or **Ctrl+Enter** to queue a message (send it while the agent is still working). **Ctrl+D** no longer queues messages — it now has its default terminal behavior. If you have muscle memory for Ctrl+D queuing, switch to Ctrl+Q.
 
+*(v1.0.79+)* **Prompt queueing**: You can queue prompts, shell commands (`!cmd`), and most slash commands to run in order after the current task finishes. Queued items appear in a list you can manage with a directable queue manager — reorder, edit, remove, repeat, or immediately send queued messages. This is useful for lining up a series of tasks while the agent is busy without interrupting its current work.
+
 **Background running tasks**: Press **Ctrl+X → B** to move the current running task or shell command to the background. The task continues executing while you can type a new message or review earlier output. This is useful for long-running commands where you want to interact with the agent while waiting for the result.
 
 **Shell command history in normal mode** (v1.0.65+): The **↑/↓** arrow keys and **Ctrl+R** reverse search now include past shell commands (commands run with `!`) while you are in normal (non-shell) input mode. Previously you had to type `!` to enter shell mode before history worked. Now you can recall and re-run a shell command without switching modes first — useful for quickly repeating a build, test, or diagnostic command from earlier in the session.
@@ -673,6 +712,13 @@ The `/usage` command displays session metrics such as the number of tokens consu
 
 ```
 /usage
+```
+
+*(v1.0.79+)* The `/limits predict` command suggests an AI-credit limit for your session based on similar past sessions. Use it when starting a long-running task to set a budget before beginning:
+
+```
+/limits predict    # suggest a session credit limit based on similar sessions
+/limits            # view current limits and usage
 ```
 
 The `/compact` command summarizes the conversation history to free up context window space while preserving the thread of the conversation. Use it when your context is getting full but you do not want to start a fresh session:
@@ -754,6 +800,12 @@ copilot --plan          # start in plan mode (propose without executing)
 
 This is useful in scripts or CI pipelines where you want the CLI to immediately begin working in a specific mode without an interactive prompt.
 
+*(v1.0.79+)* You can combine `--plan` with `--mode autopilot` to have Copilot first generate a plan, then automatically implement it without pausing for approval. This two-phase approach lets you review the plan before work begins while still running hands-free once planning completes:
+
+```bash
+copilot --plan --mode autopilot "Refactor the payment module"
+```
+
 The `--max-autopilot-continues` flag controls how many times Copilot can automatically continue in autopilot mode before pausing for confirmation. The default is 5:
 
 ```bash
@@ -770,6 +822,15 @@ copilot --no-sandbox -p "Set up development environment with system tools"
 ```
 
 These flags apply only to the current invocation — your persisted sandbox preference remains unchanged.
+
+*(v1.0.79+)* Use the `/sandbox` command (without flags) in an interactive session to open the sandbox configuration dialog, or use `/sandbox policy` to inspect the effective sandbox state at a glance — which paths are allowed or denied, what network access is configured, and whether any settings are locked by managed policy:
+
+```
+/sandbox           # open the sandbox configuration dialog
+/sandbox policy    # show effective sandbox paths, denials, and network access
+```
+
+The `/sandbox` dialog also surfaces any org-managed sandbox settings with locked fields, so you can confirm what your organization has enforced.
 
 The `--attachment` flag (available in prompt mode, `-p`) lets you attach files — images or native documents — to the initial prompt in non-interactive mode:
 
