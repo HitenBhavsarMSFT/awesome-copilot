@@ -3,7 +3,7 @@ title: 'Copilot Configuration Basics'
 description: 'Learn how to configure GitHub Copilot at user, workspace, and repository levels to optimize your AI-assisted development experience.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-07-28
+lastUpdated: 2026-08-23
 estimatedReadingTime: '10 minutes'
 tags:
   - configuration
@@ -480,6 +480,15 @@ The settings dialog supports search — type to filter settings by name. Changes
 
 These flags mirror the **Repo** and **Repo (local)** scope tabs available in the `/settings` dashboard (v1.0.71+), making it easier to manage per-repository vs. user-global configuration without ambiguity. In v1.0.71+, the `/settings` dashboard also shows **Repo** and **Repo (local)** tabs alongside the existing user-level view, giving you a unified place to see which settings are applied at each layer.
 
+> **`/model` is now session-scoped by default *(v1.0.79+)***: Running `/model` (or picking a model from the model picker) changes the model for the **current session only** — it no longer persists to future sessions. To set a default model for all future sessions, use `/config model` instead:
+>
+> ```
+> /config model                 # open picker to set a default model for future sessions
+> /config model claude-sonnet-5 # set a specific default model
+> ```
+>
+> Use `/model` for one-off overrides within a session, and `/config model` when you want the change to stick.
+
 GitHub Copilot CLI has two commands for managing session state, with distinct behaviours:
 
 | Command | Behaviour |
@@ -525,6 +534,8 @@ The `/rewind` command opens a timeline picker that lets you roll back the conver
 
 Use `/rewind` when you want to branch off from a different point in the conversation, rather than just undoing the most recent turn.
 
+> **Improved in v1.0.78+**: `/rewind` no longer requires a `git` installation. It now restores only the files Copilot actually changed, skipping any file whose contents no longer match what Copilot last wrote (so manual edits you made after the agent are preserved). When rewinding, you can choose between reverting just the conversation or reverting the conversation and all associated file changes.
+
 The `/undo` command reverts the last turn—including any file changes the agent made—letting you course-correct without manually undoing edits:
 
 ```
@@ -567,6 +578,17 @@ This creates a branch named from your task description and begins working on it 
 
 After the command runs, the session is inside the new worktree. Use this when you want to work on a second task in parallel without stashing changes or opening a new terminal. In v1.0.64+ you can also use the experimental `--worktree` flag at startup (`copilot -w [name]`) to create or reuse a worktree under `<repo>.worktrees/` before the session begins.
 
+*(v1.0.79+)* Use `/worktree new` to start a **fresh session in a brand new worktree** without moving your current session's changes. This is different from `/worktree <branch>`, which moves uncommitted changes into the new worktree:
+
+```
+/worktree new                     # create a new worktree and open a fresh session
+/worktree new my-parallel-task    # create a named worktree with a fresh session
+```
+
+Use `/worktree new` when you want to run a second agent task completely independently from your current session — the current session stays in its worktree while the new session starts fresh in its own.
+
+> **`worktreeBaseRef` setting *(v1.0.79+)***: This setting controls whether `/worktree`, `/worktree new`, and `--worktree` create the new worktree from `HEAD` (the current commit) or from the remote default branch. All three now default to `HEAD`. Set `worktreeBaseRef` in your settings to `"remote"` if you prefer new worktrees to start from the remote default branch instead.
+
 The `/every` command (also available as `/loop` since v1.0.64) schedules a recurring prompt to run automatically at a specified interval. The companion `/after` command runs a prompt once after a specified delay. Both are useful for self-paced automation — polling for results, periodically summarizing progress, or triggering other slash commands on a timer:
 
 ```
@@ -581,6 +603,8 @@ The interval can be specified in seconds (`s`), minutes (`m`), or hours (`h`), a
 > **Experimental**: `/every`, `/loop`, and `/after` are part of the experimental feature set. They appear in the `/experimental` slash command list — enable experimental features if they are not already visible in your current session.
 
 > **Note**: Scheduled prompts run in the background of the current session and use your active model. They share the session context window, so very frequent scheduling with long responses may consume context rapidly. Use `/compact` if context usage becomes a concern.
+
+*(v1.0.79+)* **Queue prompts and commands** in local sessions: in a local (non-remote) session you can queue additional prompts, shell commands, and supported slash commands to run in order after the current task finishes. This lets you stage follow-up work without waiting — type the next prompt and it will execute automatically once the agent completes its current turn.
 
 The `/pr auto` command *(v1.0.66+)* starts a self-paced automation loop that drives the current pull request to CI green. Rather than running continuously, it fixes one failing item per run and paces itself around CI checks to avoid redundant work:
 
@@ -727,6 +751,14 @@ Use `/autopilot` when you want to flip between supervised and unsupervised opera
 
 > **Read-only `gh` CLI commands (v1.0.46+)**: Read-only `gh` commands — such as `gh issue list`, `gh pr view`, `gh run status`, and other commands that don't write to GitHub — are **automatically approved** without a permission prompt. Only commands that write to GitHub (like creating issues, merging PRs) still require explicit approval. This reduces friction during exploratory sessions where you frequently check issue or PR status.
 
+The `/permissions` command *(v1.0.78+)* is a quick way to cycle through the available approval modes for the current session — interactive (requires confirmation for each tool), autopilot (no confirmations), and auto allow-all (LLM judge decides):
+
+```
+/permissions    # cycle through approval modes (interactive → autopilot → auto → interactive)
+```
+
+Use `/permissions` as a shortcut when you want to switch between supervised and unsupervised operation without typing the full `/allow-all on` or `/allow-all auto` commands.
+
 The `--effort` flag (shorthand for `--reasoning-effort`) controls how much computational reasoning the model applies to a request:
 
 ```bash
@@ -770,6 +802,14 @@ copilot --no-sandbox -p "Set up development environment with system tools"
 ```
 
 These flags apply only to the current invocation — your persisted sandbox preference remains unchanged.
+
+*(v1.0.79+)* The `/sandbox policy` command shows the **effective sandbox state** for the current session — which paths are read-only or writable, which shell commands are blocked, and whether network access is allowed. Use it to diagnose unexpected sandbox denials:
+
+```
+/sandbox policy     # show effective sandbox paths, denials, and network access
+```
+
+> **BREAKING *(v1.0.79+)***: The sandbox setting `allowDevToolCaches` has been **renamed to `allowDevToolAccess`** (it now also covers dev-tool configuration and registries, not just caches). The old key is silently ignored, so an existing `false` opt-out reverts to the default (on). If you have `allowDevToolCaches: false` in your `settings.json` or MDM policy, rename it to `allowDevToolAccess: false`.
 
 The `--attachment` flag (available in prompt mode, `-p`) lets you attach files — images or native documents — to the initial prompt in non-interactive mode:
 
