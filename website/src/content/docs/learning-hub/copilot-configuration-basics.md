@@ -3,7 +3,7 @@ title: 'Copilot Configuration Basics'
 description: 'Learn how to configure GitHub Copilot at user, workspace, and repository levels to optimize your AI-assisted development experience.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-07-28
+lastUpdated: 2026-08-24
 estimatedReadingTime: '10 minutes'
 tags:
   - configuration
@@ -429,6 +429,8 @@ CLI settings use **camelCase** naming. Key settings added in recent releases:
 | `proxy` | HTTP(S) proxy URL for all outbound CLI requests (e.g., `http://proxy.example.com:8080`) (v1.0.64+) |
 | `sessionLimits` | Restrict credit or turn usage for a session; limits apply across the current conversation and reset on `/clear` (v1.0.66+) |
 | `stayInAutopilot` | Keep the CLI in autopilot mode after an autopilot task completes, instead of returning to interactive mode (v1.0.69+) |
+| `defaultMode` | Choose the startup mode for new interactive sessions: `interactive` (default), `autopilot`, or `plan` (v1.0.81+) |
+| `defaultPermissionMode` | Choose the default approval behavior for new interactive sessions: `default` (prompt for each tool use), `allow-all` (auto-approve), or `ask` (v1.0.81+) |
 
 > **Note**: Older snake_case names (e.g., `include_gitignored`, `auto_updates_channel`) are still accepted for backward compatibility, but camelCase is now the preferred format.
 
@@ -516,6 +518,12 @@ The `/session delete` command removes sessions you no longer need:
 You can also press **x** on a highlighted session in the session picker (`--resume`) to delete it directly from the list.
 
 In the session picker, press **`s`** to cycle the sort order: relevance, last used, created, or name. The picker also shows the branch name and idle/in-use status for each session.
+
+### Restoring Sessions After a Crash or Restart
+
+*(v1.0.81+)* When the CLI starts up, it automatically offers to restore any sessions that were still open when the CLI previously exited unexpectedly — for example due to a crash or machine restart. Instead of losing your open terminals, the startup screen lists the abandoned sessions and lets you pick which ones to reopen with a single keypress.
+
+This removes the need to manually remember and reopen each terminal after an unexpected shutdown. Combined with the `--resume` flag, it means your session state is reliably preserved across interruptions.
 
 The `/rewind` command opens a timeline picker that lets you roll back the conversation to any earlier point in history, reverting both the conversation and any file changes made after that point. You can also trigger it by pressing **double-Esc**:
 
