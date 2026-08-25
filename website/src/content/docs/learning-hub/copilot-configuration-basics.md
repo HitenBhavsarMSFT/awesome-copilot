@@ -3,7 +3,7 @@ title: 'Copilot Configuration Basics'
 description: 'Learn how to configure GitHub Copilot at user, workspace, and repository levels to optimize your AI-assisted development experience.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-07-28
+lastUpdated: 2026-08-25
 estimatedReadingTime: '10 minutes'
 tags:
   - configuration
@@ -429,6 +429,8 @@ CLI settings use **camelCase** naming. Key settings added in recent releases:
 | `proxy` | HTTP(S) proxy URL for all outbound CLI requests (e.g., `http://proxy.example.com:8080`) (v1.0.64+) |
 | `sessionLimits` | Restrict credit or turn usage for a session; limits apply across the current conversation and reset on `/clear` (v1.0.66+) |
 | `stayInAutopilot` | Keep the CLI in autopilot mode after an autopilot task completes, instead of returning to interactive mode (v1.0.69+) |
+| `defaultMode` | Default agent mode for new interactive sessions: `agent`, `plan`, or `autopilot` (v1.0.81+) |
+| `defaultPermissionMode` | Default approval behavior for new interactive sessions: `interactive` (prompt each time) or `allow-all` (v1.0.81+) |
 
 > **Note**: Older snake_case names (e.g., `include_gitignored`, `auto_updates_channel`) are still accepted for backward compatibility, but camelCase is now the preferred format.
 
@@ -458,6 +460,8 @@ The model picker opens in a **full-screen view** with inline reasoning effort ad
 ```
 
 When you leave plan mode, the CLI automatically reverts to your session model. This pairing works well with repository model pinning — you can enforce a high-quality model for implementation while allowing a lighter model during exploration and planning.
+
+**Data retention warnings** (v1.0.81+): The model picker now shows inline data retention warnings and links for models that have specific data handling policies. This makes it easier to make informed choices when working with sensitive codebases — you can see each model's data policy before selecting it.
 
 ### CLI Session Commands
 
@@ -637,6 +641,8 @@ Use `/diagnose` when a session is behaving unexpectedly — it inspects session 
 
 **Keyboard shortcuts for queuing messages**: Use **Ctrl+Q** or **Ctrl+Enter** to queue a message (send it while the agent is still working). **Ctrl+D** no longer queues messages — it now has its default terminal behavior. If you have muscle memory for Ctrl+D queuing, switch to Ctrl+Q.
 
+**Voice dictation** (v1.0.81+): Use **Ctrl+Space** to toggle voice dictation. When active, your speech is transcribed into the prompt input. This is useful for quickly describing tasks without typing, especially for longer or more complex prompts.
+
 **Background running tasks**: Press **Ctrl+X → B** to move the current running task or shell command to the background. The task continues executing while you can type a new message or review earlier output. This is useful for long-running commands where you want to interact with the agent while waiting for the result.
 
 **Shell command history in normal mode** (v1.0.65+): The **↑/↓** arrow keys and **Ctrl+R** reverse search now include past shell commands (commands run with `!`) while you are in normal (non-shell) input mode. Previously you had to type `!` to enter shell mode before history worked. Now you can recall and re-run a shell command without switching modes first — useful for quickly repeating a build, test, or diagnostic command from earlier in the session.
@@ -742,6 +748,20 @@ The `-C <directory>` flag changes the working directory before starting, similar
 ```bash
 copilot -C ~/projects/my-repo          # start in a different directory
 copilot -C ~/projects/my-repo -p "..."  # combine with prompt mode
+```
+
+**Session restore on startup** (v1.0.81+): When you start the CLI, it now offers to restore sessions that were still open when the last CLI process exited (for example, due to a crash or machine restart). This means you don't need to manually find and resume sessions after unexpected shutdowns — the CLI prompts you to pick up where you left off.
+
+**`copilot login --with-token`** (v1.0.81+): The `login` subcommand now accepts a `--with-token` flag that reads an authentication token from stdin. This is useful in automated or CI environments where you want to authenticate non-interactively:
+
+```bash
+echo "$GITHUB_TOKEN" | copilot login --with-token
+```
+
+**`--add-dir`**: The `--add-dir` flag adds an extra directory to the agent discovery path. Skills and custom agents inside the added directory are loaded as if they were in your repository's `.github/` folder. This is useful for shared workspaces or custom tool directories (v1.0.81+):
+
+```bash
+copilot --add-dir ~/shared-skills
 ```
 
 The `--mode` flag (along with its aliases `--autopilot` and `--plan`) lets you launch the CLI directly in a specific agent mode without waiting for the interactive session to start:
