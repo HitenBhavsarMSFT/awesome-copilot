@@ -3,10 +3,7 @@ title: 'Copilot Configuration Basics'
 description: 'Learn how to configure GitHub Copilot at user, workspace, and repository levels to optimize your AI-assisted development experience.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-07-28
-estimatedReadingTime: '10 minutes'
-tags:
-  - configuration
+lastUpdated: 2026-08-28
   - setup
   - fundamentals
 relatedArticles:
@@ -817,6 +814,45 @@ echo 'source ~/.copilot-completion.bash' >> ~/.bashrc
 ```
 
 > **Tip**: Reload your shell (`source ~/.bashrc` or open a new terminal) after adding the completion script for changes to take effect.
+
+### Default Mode and Permission Settings
+
+*(v1.0.81+)* You can now configure a **default startup mode** and **default permission level** so that every new Copilot CLI session begins in the mode and with the permissions you prefer, without needing to set them each time.
+
+Set your defaults with `/settings`:
+
+```
+/settings defaultMode agent
+/settings defaultPermissions allow-all
+```
+
+Or save them directly in your user-level `settings.json`:
+
+```json
+{
+  "defaultMode": "agent",
+  "defaultPermissions": "allow-all"
+}
+```
+
+**`defaultMode`** accepts the same values as the `--mode` startup flag:
+
+| Value | Description |
+|-------|-------------|
+| `interactive` | Agent pauses before every tool use (default) |
+| `agent` | Agent runs autonomously but still asks for risky actions |
+| `autopilot` | Full allow-all mode — no confirmation prompts |
+| `plan` | Plan only, no tool execution |
+
+**`defaultPermissions`** controls the permission level applied at session start:
+
+| Value | Description |
+|-------|-------------|
+| `default` | Standard per-tool permission prompts |
+| `allow-all` | Approves all tool use automatically |
+| `auto` | LLM judge approves routine actions, surfaces risky ones |
+
+These settings take effect at session start and can still be overridden for a single session via the `--mode` and `--autopilot` startup flags, or changed mid-session with `/autopilot` and `/allow-all`.
 
 ## Common Questions
 
