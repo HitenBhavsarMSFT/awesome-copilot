@@ -3,7 +3,7 @@ title: 'Installing and Using Plugins'
 description: 'Learn how to find, install, and manage plugins that extend GitHub Copilot CLI with reusable agents, skills, hooks, and integrations.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-07-28
+lastUpdated: 2026-08-28
 estimatedReadingTime: '8 minutes'
 tags:
   - plugins
@@ -101,6 +101,16 @@ Plugins are collected in **marketplaces** — registries you can browse and inst
 - **`awesome-copilot`** — Community-contributed plugins from this repository
 
 ### Browsing in Copilot CLI
+
+*(v1.0.81+)* The `/plugin` command opens a unified **plugins dashboard** that combines plugin management, MCP server configuration, and skills browsing in a single interactive view. Access it from within an interactive session:
+
+```
+/plugin
+```
+
+The dashboard shows installed plugins, available marketplace plugins, and links to the `/mcp` and `/skills` dashboards — so you can configure all your Copilot extensions from one place.
+
+For command-line (non-interactive) plugin management:
 
 List your registered marketplaces:
 

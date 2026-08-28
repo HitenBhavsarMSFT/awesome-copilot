@@ -3,10 +3,7 @@ title: 'Automating with Hooks'
 description: 'Learn how to use hooks to automate lifecycle events like formatting, linting, and governance checks during Copilot agent sessions.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-07-13
-estimatedReadingTime: '8 minutes'
-tags:
-  - hooks
+lastUpdated: 2026-08-28
   - automation
   - fundamentals
 relatedArticles:
@@ -607,6 +604,31 @@ You can also reference these paths as template variables in your hook configurat
 ```
 
 This is useful for plugins that bundle scripts or data files alongside their hooks, since `{{plugin_data_dir}}` always points to the correct installed location regardless of where the plugin is installed.
+
+### OpenTelemetry Trace Context in Hooks
+
+*(v1.0.81+)* When the CLI is running with OpenTelemetry tracing enabled, Copilot automatically injects standard OTLP trace propagation headers into the environment of every hook invocation. This allows hook scripts to participate in distributed traces alongside the agent session.
+
+The following environment variables are set when a trace context is active:
+
+| Variable | Description |
+|----------|-------------|
+| `TRACEPARENT` | W3C Trace Context `traceparent` header value |
+| `TRACESTATE` | W3C Trace Context `tracestate` header value (may be empty) |
+
+A hook script can forward these headers to any downstream service it calls:
+
+```bash
+#!/usr/bin/env bash
+# Report hook telemetry to an internal observability endpoint
+curl -s -X POST https://telemetry.example.com/events \
+  -H "traceparent: ${TRACEPARENT}" \
+  -H "tracestate: ${TRACESTATE}" \
+  -H "Content-Type: application/json" \
+  -d '{"event": "postToolUse", "tool": "'"${TOOL_NAME}"'"}'
+```
+
+This is useful for teams that want to correlate Copilot agent activity with wider system observability, for example linking a hook-triggered lint run back to the overall agent session trace.
 
 ## Writing Hook Scripts
 
