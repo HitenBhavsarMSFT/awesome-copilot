@@ -3,7 +3,7 @@ title: 'Installing and Using Plugins'
 description: 'Learn how to find, install, and manage plugins that extend GitHub Copilot CLI with reusable agents, skills, hooks, and integrations.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-07-28
+lastUpdated: 2026-08-29
 estimatedReadingTime: '8 minutes'
 tags:
   - plugins
@@ -92,6 +92,27 @@ Plugins are especially valuable when you want to:
 - **Share domain expertise** — Package a Rails expert, Kubernetes specialist, or security reviewer as an installable unit
 - **Encapsulate complex setups** — Bundle MCP server configurations that would otherwise require manual setup
 - **Reuse across projects** — Install the same capabilities in every project without duplicating files
+
+## The Plugins Dashboard
+
+*(v1.0.81+)* GitHub Copilot CLI includes a unified **Plugins Dashboard** that gives you one place to manage all plugin-related configuration: installed plugins, MCP servers, skills, agents, instructions, and hooks.
+
+Open the dashboard from an interactive session with any of these commands:
+
+```
+/plugin    # view and manage installed plugins
+/mcp       # view and manage MCP servers
+/skills    # view and manage skills
+```
+
+From the dashboard you can:
+
+- **Browse and install** plugins from any registered marketplace
+- **Enable or disable** individual plugins, agents, skills, hooks, and MCP servers without uninstalling them
+- **Update plugins** — the dashboard flags installed plugins that have a newer version available upstream and offers a one-click **Update** action
+- **Manage MCP servers** — view, configure, and toggle server connections
+
+> **Removed**: The `/plugins` command was removed in v1.0.81. Its resources have moved to `/plugin` (plugins), `/mcp` (MCP servers), `/skills` (skills), `/subagents` (agents), and `/instructions` (instructions).
 
 ## Finding Plugins
 
@@ -221,6 +242,24 @@ copilot plugin marketplace update
 # Remove a plugin
 copilot plugin uninstall my-plugin
 ```
+
+### Auto-Updating Marketplaces
+
+*(v1.0.79+)* Set `"autoUpdate": true` on an `extraKnownMarketplaces` entry to automatically update all plugins from that marketplace at session start:
+
+```json
+{
+  "extraKnownMarketplaces": [
+    {
+      "name": "my-org-plugins",
+      "source": "my-org/internal-plugins",
+      "autoUpdate": true
+    }
+  ]
+}
+```
+
+With `autoUpdate` enabled, Copilot checks for plugin updates from that marketplace each time you start a session, keeping your team's tools current without manual `copilot plugin update` runs.
 
 ### Loading Plugins from a Local Directory
 
