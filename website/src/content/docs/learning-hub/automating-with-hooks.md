@@ -3,7 +3,7 @@ title: 'Automating with Hooks'
 description: 'Learn how to use hooks to automate lifecycle events like formatting, linting, and governance checks during Copilot agent sessions.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-07-13
+lastUpdated: 2026-08-29
 estimatedReadingTime: '8 minutes'
 tags:
   - hooks
@@ -175,6 +175,34 @@ You can also use these as **template variables** directly in the `bash` or `powe
 ```
 
 This makes it straightforward to write plugin hooks that are portable across machines and projects without hardcoding paths.
+
+### OpenTelemetry Trace Context (v1.0.81+)
+
+All hook inputs now include the current **OpenTelemetry trace context**, making it possible to correlate hook spans with the surrounding Copilot session trace.
+
+**In JSON input** (both command and HTTP hooks): The hook's stdin payload includes two new fields:
+
+| Field | Description |
+|-------|-------------|
+| `traceparent` | W3C Trace Context `traceparent` header value (present when tracing is active) |
+| `tracestate` | W3C Trace Context `tracestate` header value (present when the span has vendor state) |
+
+**In environment variables** (command hooks only): The trace context is also available as `TRACEPARENT` and `TRACESTATE` environment variables, so subprocess tools that read standard W3C trace env vars can participate in the trace automatically.
+
+Example: forwarding a correlated hook event to an observability backend:
+
+```bash
+#!/usr/bin/env bash
+INPUT=$(cat)
+TRACEPARENT=$(echo "$INPUT" | jq -r '.traceparent // empty')
+
+curl -s -X POST "https://tracing.example.com/spans" \
+  -H "traceparent: $TRACEPARENT" \
+  -H "Content-Type: application/json" \
+  -d "{\"event\": \"hook.fired\", \"tool\": $(echo "$INPUT" | jq '.tool_name')}"
+```
+
+This is useful for governance and audit hooks that need to correlate Copilot agent activity with a broader observability or tracing pipeline.
 
 ### Event Configuration
 
