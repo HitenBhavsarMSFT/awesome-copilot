@@ -3,7 +3,7 @@ title: 'Installing and Using Plugins'
 description: 'Learn how to find, install, and manage plugins that extend GitHub Copilot CLI with reusable agents, skills, hooks, and integrations.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-07-28
+lastUpdated: 2026-08-30
 estimatedReadingTime: '8 minutes'
 tags:
   - plugins
@@ -102,6 +102,14 @@ Plugins are collected in **marketplaces** — registries you can browse and inst
 
 ### Browsing in Copilot CLI
 
+*(v1.0.81+)* The plugins dashboard is the central hub for managing all extensibility in Copilot CLI. Open it with any of these commands:
+
+- `/plugin` — manage plugins (install, update, list)
+- `/mcp` — manage MCP server configuration
+- `/skills` — browse and invoke skills
+
+> **Breaking change (v1.0.81)**: The `/plugins` command has been removed. Its resources moved to `/plugin`, `/mcp`, and `/skills`, with `/subagents` and `/instructions` for agents and instructions. If you have scripts or documentation referencing `/plugins`, update them to use the new commands.
+
 List your registered marketplaces:
 
 ```bash
@@ -159,6 +167,24 @@ To automatically register an additional marketplace for everyone working in a re
 ```
 
 With this in place, team members automatically get the `my-org-plugins` marketplace available without running a separate `marketplace add` command. This replaces the older `marketplaces` setting, which was removed in v1.0.16.
+
+### Auto-Updating Marketplaces
+
+*(v1.0.79+)* You can configure a marketplace to automatically update its plugin catalog at session start by adding `"autoUpdate": true` to its entry in `extraKnownMarketplaces`:
+
+```json
+{
+  "extraKnownMarketplaces": [
+    {
+      "name": "my-org-plugins",
+      "source": "my-org/internal-plugins",
+      "autoUpdate": true
+    }
+  ]
+}
+```
+
+This ensures your team always has the latest plugin versions available without manually running `copilot plugin marketplace update`.
 
 ### Pinning a Marketplace to a Specific Commit
 
@@ -222,6 +248,10 @@ copilot plugin marketplace update
 copilot plugin uninstall my-plugin
 ```
 
+*(v1.0.78+)* **First-party plugins** (those from the `copilot-plugins` marketplace) update automatically to the latest version at the start of each session, so you always have the latest capabilities without running `copilot plugin update` manually.
+
+*(v1.0.81+)* The `/plugin` dashboard flags any installed plugins that have a newer version available in their upstream marketplace, and offers a one-click **Update** action to pull the latest version.
+
 ### Loading Plugins from a Local Directory
 
 You can load plugins directly from a local directory without installing them from a marketplace, using the `--plugin-dir` flag when starting Copilot:
@@ -231,6 +261,18 @@ copilot --plugin-dir /path/to/my-plugin
 ```
 
 Plugins loaded this way appear in `/plugin list` under a separate **External Plugins** section, clearly distinguished from marketplace-installed plugins. This is useful for testing local plugins in development or loading private plugins that aren't published to any marketplace.
+
+*(v1.0.81+)* Agents, skills, and MCP servers contributed by plugins are also available in non-interactive (`-p`) runs. Use `--agent <plugin>:<agent>` to invoke a plugin-contributed agent headlessly:
+
+```bash
+copilot -p "Analyze this PR" --agent my-plugin:code-reviewer
+```
+
+You can also discover additional skills and agents by pointing to a directory with `--add-dir`:
+
+```bash
+copilot --add-dir /path/to/extra-agents
+```
 
 ### Where Plugins Are Stored
 

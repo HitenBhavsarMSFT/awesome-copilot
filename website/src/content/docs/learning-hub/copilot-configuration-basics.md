@@ -3,7 +3,7 @@ title: 'Copilot Configuration Basics'
 description: 'Learn how to configure GitHub Copilot at user, workspace, and repository levels to optimize your AI-assisted development experience.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-07-28
+lastUpdated: 2026-08-30
 estimatedReadingTime: '10 minutes'
 tags:
   - configuration
@@ -429,6 +429,8 @@ CLI settings use **camelCase** naming. Key settings added in recent releases:
 | `proxy` | HTTP(S) proxy URL for all outbound CLI requests (e.g., `http://proxy.example.com:8080`) (v1.0.64+) |
 | `sessionLimits` | Restrict credit or turn usage for a session; limits apply across the current conversation and reset on `/clear` (v1.0.66+) |
 | `stayInAutopilot` | Keep the CLI in autopilot mode after an autopilot task completes, instead of returning to interactive mode (v1.0.69+) |
+| `defaultMode` | Startup mode for new interactive sessions (e.g., `"interactive"`, `"autopilot"`, `"plan"`) (v1.0.81+) |
+| `defaultPermissionMode` | Default approval behavior for new sessions (e.g., `"manual"`, `"acceptEdits"`, `"bypassPermissions"`) (v1.0.81+) |
 
 > **Note**: Older snake_case names (e.g., `include_gitignored`, `auto_updates_channel`) are still accepted for backward compatibility, but camelCase is now the preferred format.
 
@@ -446,6 +448,16 @@ These files follow the same format as `config.json` and are loaded after the glo
 The model picker opens in a **full-screen view** with inline reasoning effort adjustment. Use the **← / →** arrow keys to change the reasoning effort level (`low`, `medium`, `high`) directly from the picker without leaving the session. The current reasoning effort level is also displayed in the model header (e.g., `claude-sonnet-4.6 (high)`) so you always know which level is active.
 
 **Auto mode and server-side model routing** (v1.0.43+): When you select **Auto** as your model, the CLI uses server-side model routing for real-time model selection. Instead of locking in a single model at session start, Auto mode evaluates each request and routes it to the most appropriate model dynamically. This means straightforward questions can be handled by a faster model while complex reasoning tasks are automatically escalated — without you needing to switch models manually.
+
+*(v1.0.81+)* Auto mode now **adapts model selection as your task evolves** mid-conversation, not just at the start of each request. As the nature of your work changes — from exploration to coding to debugging — the active model can shift automatically to stay optimal.
+
+**Session-scoped model selection** *(v1.0.79+)*: The `/model` command is now **session-scoped by default** — changes you make with `/model` apply only to the current session. To set a persistent model default for all future sessions, use:
+
+```
+/config model claude-sonnet-4.6
+```
+
+This separation keeps ad-hoc model experiments from affecting your default configuration.
 
 **Model family aliases** (v1.0.64+): Instead of typing a full model name, you can use short family aliases in the model setting: `opus`, `sonnet`, `haiku` (Anthropic), and `gpt`, `gemini` (Google/OpenAI). The CLI resolves the alias to the latest available model in that family. This is especially useful in scripts or configuration files where you want to track the best model in a family without hardcoding a version string. Recent models available include **Claude Opus 5** (v1.0.75+), the latest in Anthropic's Opus family for the most demanding tasks.
 
@@ -517,7 +529,7 @@ You can also press **x** on a highlighted session in the session picker (`--resu
 
 In the session picker, press **`s`** to cycle the sort order: relevance, last used, created, or name. The picker also shows the branch name and idle/in-use status for each session.
 
-The `/rewind` command opens a timeline picker that lets you roll back the conversation to any earlier point in history, reverting both the conversation and any file changes made after that point. You can also trigger it by pressing **double-Esc**:
+The `/rewind` command opens a timeline picker that lets you roll back the conversation to any earlier point in history. *(v1.0.78+)* `/rewind` no longer requires git and **only restores files that Copilot changed** — it skips any file whose contents no longer match what Copilot last wrote. You also choose between reverting the conversation only, or the conversation plus the files:
 
 ```
 /rewind
@@ -634,6 +646,16 @@ The `/diagnose` command (v1.0.64+) analyzes the current session's logs and surfa
 ```
 
 Use `/diagnose` when a session is behaving unexpectedly — it inspects session logs and reports what it finds, making it easier to share diagnostics with support or understand what happened internally.
+
+*(v1.0.81+)* The `copilot app` command opens the **GitHub Copilot desktop app** in the current directory:
+
+```bash
+copilot app
+```
+
+This is a quick way to switch from the CLI to the desktop app's visual interface for the same project, without navigating manually. It requires GitHub Copilot app v1.1.3 or later.
+
+*(v1.0.81+)* **Session restore on startup**: When you start a new Copilot CLI session, the CLI detects any sessions that were still open when a previous CLI process exited unexpectedly (due to a crash or machine restart) and **offers to restore them**. This means a machine restart no longer requires reopening each terminal session by hand.
 
 **Keyboard shortcuts for queuing messages**: Use **Ctrl+Q** or **Ctrl+Enter** to queue a message (send it while the agent is still working). **Ctrl+D** no longer queues messages — it now has its default terminal behavior. If you have muscle memory for Ctrl+D queuing, switch to Ctrl+Q.
 
@@ -771,6 +793,8 @@ copilot --no-sandbox -p "Set up development environment with system tools"
 
 These flags apply only to the current invocation — your persisted sandbox preference remains unchanged.
 
+> **Breaking change (v1.0.79)**: The sandbox setting `allowDevToolCaches` has been renamed to **`allowDevToolAccess`**. The old key is no longer read and is silently ignored, so an existing `false` opt-out will revert to the default (enabled). If you have `allowDevToolCaches: false` in your `settings.json` or any MDM/managed policy, rename it to `allowDevToolAccess: false`.
+
 The `--attachment` flag (available in prompt mode, `-p`) lets you attach files — images or native documents — to the initial prompt in non-interactive mode:
 
 ```bash
@@ -793,6 +817,14 @@ copilot --config-dir ~/.my-copilot-config
 ```
 
 Set `COPILOT_HOME` in your shell profile to use a custom config directory across all sessions. This is especially useful when running multiple Copilot configurations for different projects or teams.
+
+*(v1.0.81+)* The `--with-token` flag for `copilot login` allows reading an authentication token from stdin, enabling non-interactive authentication in headless or CI environments:
+
+```bash
+echo "$MY_GITHUB_TOKEN" | copilot login --with-token
+```
+
+This is useful in automation pipelines where you want to pre-authenticate Copilot CLI without a browser or device code flow.
 
 ### Shell Completion
 

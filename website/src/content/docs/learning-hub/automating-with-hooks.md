@@ -3,7 +3,7 @@ title: 'Automating with Hooks'
 description: 'Learn how to use hooks to automate lifecycle events like formatting, linting, and governance checks during Copilot agent sessions.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-07-13
+lastUpdated: 2026-08-30
 estimatedReadingTime: '8 minutes'
 tags:
   - hooks
@@ -139,6 +139,32 @@ EOF
 ```
 
 > **How it works**: If your hook writes `{"additionalContext": "..."}` to stdout and exits with code `0`, the text is prepended to the model prompt for this turn. The hook can also write both `additionalContext` and `response` — if `response` is present, that wins and the model call is skipped.
+
+### OpenTelemetry Trace Context in Hooks *(v1.0.81+)*
+
+Hooks can now participate in distributed tracing alongside Copilot sessions. When a hook fires, its input JSON includes the current OpenTelemetry trace context:
+
+| Input field | Description |
+|-------------|-------------|
+| `traceparent` | W3C trace context header (`00-<trace-id>-<span-id>-<flags>`) |
+| `tracestate` | W3C trace state header (present only when the span carries vendor state) |
+
+For `command` hooks, the same context is also injected as environment variables (`TRACEPARENT`, `TRACESTATE`), so any child process or script that reads standard OTel env vars will automatically be correlated with the Copilot session's trace.
+
+This enables you to emit correlated spans from your hook scripts and have them appear alongside the Copilot agent spans in your observability platform — useful for auditing, performance analysis, and end-to-end tracing of AI-assisted workflows:
+
+```bash
+#!/usr/bin/env bash
+# Hook script that emits a correlated span
+INPUT=$(cat)
+TRACE_PARENT=$(echo "$INPUT" | jq -r '.traceparent // empty')
+
+# Pass the trace context to your telemetry tool
+otel-cli span create \
+  --name "hook:postToolUse" \
+  --traceparent "$TRACE_PARENT" \
+  --attrs "hook.tool=$(echo "$INPUT" | jq -r '.tool.name')"
+```
 
 ### Extension Hooks Merging
 
