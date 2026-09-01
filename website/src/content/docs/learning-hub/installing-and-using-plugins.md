@@ -3,7 +3,7 @@ title: 'Installing and Using Plugins'
 description: 'Learn how to find, install, and manage plugins that extend GitHub Copilot CLI with reusable agents, skills, hooks, and integrations.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-07-28
+lastUpdated: 2026-09-01
 estimatedReadingTime: '8 minutes'
 tags:
   - plugins
@@ -119,6 +119,8 @@ Or from within an interactive Copilot session:
 ```
 /plugin marketplace browse awesome-copilot
 ```
+
+*(v1.0.81+)* The `/plugin`, `/mcp`, and `/skills` commands now open **interactive dashboard views** when run without arguments. Instead of just listing items in text, the dashboards present a navigable panel showing installed plugins, active MCP servers, and loaded skills — all in one place. Use the dashboards to quickly inspect what's active, enable/disable items, and navigate to details without remembering exact command syntax.
 
 > **Tip**: You can also browse plugins on this site's [Plugins Directory](../../plugins/) to see descriptions, included agents, and skills before installing.
 
@@ -247,6 +249,26 @@ When you install a plugin, its components become available to Copilot CLI automa
 - **MCP servers** extend the tools available to agents
 
 You don't need to do any additional configuration after installing — the plugin's components integrate seamlessly into your workflow. Plugins take effect immediately after installation without requiring a Copilot CLI restart.
+
+### Plugins in Headless and Prompt-Mode Runs (v1.0.81+)
+
+*(v1.0.81+)* Plugin-contributed agents, skills, and MCP servers are now fully active when Copilot runs in **headless or prompt mode** (e.g., `copilot -p "..."` in CI pipelines). Previously, some plugin components were only available in interactive sessions. This means automation scripts and CI pipelines that use prompt mode automatically benefit from the same plugin setup as interactive sessions, without any extra flags.
+
+### Loading Resources from Additional Directories (v1.0.81+)
+
+*(v1.0.81+)* Use the `--add-dir` flag to load skills and custom agents from an **additional local directory** without installing a plugin:
+
+```bash
+copilot --add-dir /path/to/extra-agents
+```
+
+This is useful for:
+
+- **Monorepo setups**: Load shared agents from a top-level `tools/agents/` directory while working in a subdirectory
+- **Temporary exploration**: Try a set of agents from a colleague's clone without modifying your plugin configuration
+- **Testing**: Load a plugin directory in development without going through the install flow
+
+Resources loaded via `--add-dir` appear alongside marketplace-installed plugins in `/plugin list`.
 
 ## Plugins from This Repository
 
