@@ -3,7 +3,7 @@ title: 'Automating with Hooks'
 description: 'Learn how to use hooks to automate lifecycle events like formatting, linting, and governance checks during Copilot agent sessions.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-07-13
+lastUpdated: 2026-09-01
 estimatedReadingTime: '8 minutes'
 tags:
   - hooks
@@ -147,6 +147,31 @@ When multiple IDE extensions (or a mix of extensions and a `hooks.json` file) ea
 ### Cross-Platform Event Name Compatibility
 
 Hook event names can be written in **camelCase** (e.g., `preToolUse`) or **PascalCase** (e.g., `PreToolUse`). Both are accepted, making hook configuration files compatible across GitHub Copilot CLI, VS Code, and Claude Code without modification. Hooks also support Claude Code's nested `matcher`/`hooks` structure alongside the standard flat format.
+
+### OpenTelemetry Trace Context in Hooks (v1.0.81+)
+
+*(v1.0.81+)* Hooks now receive **OpenTelemetry trace context** as environment variables when they fire. This allows hook scripts to emit their own telemetry spans that are correctly parented to the active Copilot trace, giving you end-to-end observability across both the AI agent and your hook scripts.
+
+The trace context is passed via the W3C `traceparent` and `tracestate` headers as environment variables:
+
+| Variable | Description |
+|----------|-------------|
+| `OTEL_TRACEPARENT` | The W3C `traceparent` header value (e.g., `00-<trace-id>-<parent-span-id>-01`) |
+| `OTEL_TRACESTATE` | The W3C `tracestate` header value (may be empty) |
+
+Use these in your hook scripts to propagate context to your own telemetry pipeline:
+
+```bash
+#!/usr/bin/env bash
+# Forward trace context to your observability system
+curl -s -X POST https://telemetry.example.com/spans \
+  -H "traceparent: $OTEL_TRACEPARENT" \
+  -H "tracestate: $OTEL_TRACESTATE" \
+  -H "Content-Type: application/json" \
+  -d "{\"event\": \"preToolUse\", \"tool\": \"$TOOL_NAME\"}"
+```
+
+This is especially valuable for teams that use distributed tracing (Jaeger, Zipkin, Honeycomb, Datadog APM) and want hooks to appear as child spans within the same trace as the AI agent's actions.
 
 ### Plugin Hooks Environment Variables
 
